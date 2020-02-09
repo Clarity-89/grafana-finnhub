@@ -1,15 +1,15 @@
 {
   "type": "datasource",
-  "name": "Simple Data Source",
-  "id": "myorgid-simple-datasource",
+  "name": "Finnhub data source",
+  "id": "finnhub-datasource",
   "metrics": true,
 
   "info": {
-    "description": "Simple Data Source",
+    "description": "Finnhub Data Source",
     "author": {
       "name": "Your Name"
     },
-    "keywords": ["Simple"],
+    "keywords": ["Finnhub"],
     "logos": {
       "small": "img/logo.svg",
       "large": "img/logo.svg"
