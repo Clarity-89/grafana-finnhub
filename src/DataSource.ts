@@ -5,8 +5,18 @@ import { DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceS
 import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
+  dataSourceName: string;
+  token: string;
+  baseUrl: string;
+  websocketUrl: string;
+
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
+    this.dataSourceName = instanceSettings.name;
+    const config = instanceSettings.jsonData;
+    this.token = config.apiToken;
+    this.baseUrl = `https://finnhub.io/api/v1/stock`;
+    this.websocketUrl = `wss://ws.finnhub.io?token=${this.token}`;
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
