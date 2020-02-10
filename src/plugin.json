@@ -1,13 +1,13 @@
 {
   "type": "datasource",
-  "name": "Finnhub data source",
+  "name": "Finnhub",
   "id": "finnhub-datasource",
-  "metrics": true,
+  "metrics": false,
 
   "info": {
     "description": "Finnhub Data Source",
     "author": {
-      "name": "Your Name"
+      "name": "Alex Khomenko"
     },
     "keywords": ["Finnhub"],
     "logos": {
@@ -15,8 +15,8 @@
       "large": "img/logo.svg"
     },
     "links": [
-      { "name": "Website", "url": "https://github.com/grafana/simple-datasource" },
-      { "name": "License", "url": "https://github.com/grafana/simple-datasource/blob/master/LICENSE" }
+      { "name": "Website", "url": "https://github.com/Clarity-89/grafana-finnhub" },
+      { "name": "License", "url": "https://github.com/Clarity-89/grafana-finnhub/blob/master/LICENSE" }
     ],
     "screenshots": [],
     "version": "%VERSION%",
