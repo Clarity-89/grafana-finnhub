@@ -9,8 +9,6 @@ type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 interface State {}
 
 export class QueryEditor extends PureComponent<Props, State> {
-  onComponentDidMount() {}
-
   onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { onChange, query } = this.props;
     onChange({ ...query, queryText: event.target.value });
@@ -18,17 +16,17 @@ export class QueryEditor extends PureComponent<Props, State> {
 
   onConstantChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { onChange, query, onRunQuery } = this.props;
-    onChange({ ...query, constant: parseFloat(event.target.value) });
+    onChange({ ...query, symbol: event.target.value });
     onRunQuery(); // executes the query
   };
 
   render() {
     const query = { ...this.props.query, ...defaultQuery };
-    const { queryText, constant } = query;
+    const { queryText, symbol } = query;
 
     return (
       <div className="gf-form">
-        <FormField width={4} value={constant} onChange={this.onConstantChange} label="Constant" type="number" step="0.1" />
+        <FormField width={4} value={symbol} onChange={this.onConstantChange} label="Symbol" type="number" step="0.1" />
         <FormField labelWidth={8} value={queryText || ''} onChange={this.onQueryTextChange} label="Query Text" tooltip="Not used yet" />
       </div>
     );
