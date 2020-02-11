@@ -1,5 +1,3 @@
-import defaults from 'lodash/defaults';
-
 import { DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceSettings, MutableDataFrame, FieldType } from '@grafana/data';
 
 import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
@@ -26,7 +24,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     // Return a constant for each query.
     const data = options.targets.map(target => {
-      const query = defaults(target, defaultQuery);
+      const query = {...target, ...defaultQuery};
       return new MutableDataFrame({
         refId: query.refId,
         fields: [
