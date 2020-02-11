@@ -1,5 +1,3 @@
-import defaults from 'lodash/defaults';
-
 import React, { PureComponent, ChangeEvent } from 'react';
 import { FormField } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
@@ -25,7 +23,7 @@ export class QueryEditor extends PureComponent<Props, State> {
   };
 
   render() {
-    const query = defaults(this.props.query, defaultQuery);
+    const query = { ...this.props.query, ...defaultQuery };
     const { queryText, constant } = query;
 
     return (
