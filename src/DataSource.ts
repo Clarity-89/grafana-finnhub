@@ -1,4 +1,5 @@
 import { DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceSettings, MutableDataFrame, FieldType } from '@grafana/data';
+import { BackendSrv as BackendService } from '@grafana/runtime';
 
 import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 
@@ -8,7 +9,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   baseUrl: string;
   websocketUrl: string;
 
-  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
+  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendService) {
     super(instanceSettings);
     this.dataSourceName = instanceSettings.name;
     const config = instanceSettings.jsonData;
@@ -24,7 +25,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
     // Return a constant for each query.
     const data = options.targets.map(target => {
-      const query = {...target, ...defaultQuery};
+      const query = { ...target, ...defaultQuery };
       return new MutableDataFrame({
         refId: query.refId,
         fields: [
@@ -38,11 +39,18 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async testDatasource() {
-    // Implement a health check for your data source.
+    const resp = await this.get('profile', { symbol: 'AAPL' });
+    if (resp.status === 200) {
+      return { status: 'success' };
+    }
+    return { status: 'error' };
+  }
 
-    return {
-      status: 'success',
-      message: 'Success',
-    };
+  async get(dataType: string, params: any = {}) {
+    try {
+      return await this.backendSrv.get(`${this.baseUrl}/${dataType}`, { token: this.token, ...params });
+    } catch (e) {
+      console.error('Error retrieving data', e);
+    }
   }
 }
