@@ -2,7 +2,7 @@
   "type": "datasource",
   "name": "Finnhub",
   "id": "finnhub-datasource",
-  "metrics": false,
+  "metrics": true,
 
   "info": {
     "description": "Finnhub Data Source",

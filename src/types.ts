@@ -5,10 +5,6 @@ export interface MyQuery extends DataQuery {
   symbol?: string;
 }
 
-export const defaultQuery: Partial<MyQuery> = {
-  symbol: 'AAPL',
-};
-
 /**
  * These are options configured for each DataSource instance
  */

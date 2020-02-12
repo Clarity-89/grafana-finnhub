@@ -1,7 +1,7 @@
-import { DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceSettings, MutableDataFrame, FieldType } from '@grafana/data';
+import { DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
-import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
+import { MyQuery, MyDataSourceOptions } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
@@ -20,24 +20,26 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-    const { range } = options;
-    const from = range!.from.valueOf();
-    const to = range!.to.valueOf();
+    const { targets } = options;
 
-    // Return a constant for each query.
-    const data = options.targets.map(target => {
-      const query = { ...target, ...defaultQuery };
-      return new MutableDataFrame({
-        refId: query.refId,
-        fields: [
-          { name: 'Time', values: [from, to], type: FieldType.time },
-          { name: 'Value', values: [query.symbol, query.symbol], type: FieldType.number },
-        ],
-      });
+    const promises = targets.map(target => {
+      return this.get('profile', { symbol: target.symbol?.toUpperCase() });
     });
 
-    return { data };
+    const data = await Promise.all(promises);
+
+    return { data: this.tableResponse(data) };
   }
+
+  tableResponse = (data: Array<string>) => {
+    return data.map(item => {
+      return {
+        columns: Object.entries(item).map(([key, val]) => ({ text: key, type: typeof val === 'string' ? 'string' : 'number' })),
+        rows: [Object.values(item).map(val => val)],
+        type: 'table',
+      };
+    });
+  };
 
   async testDatasource() {
     const resp = await this.get('profile', { symbol: 'AAPL' });
