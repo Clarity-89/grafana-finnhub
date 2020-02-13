@@ -1,10 +1,13 @@
 import React, { FC, ChangeEvent } from 'react';
+import capitalize from 'lodash.capitalize';
 import { FormField, FormLabel, Segment } from '@grafana/ui';
-import { ExploreQueryFieldProps } from '@grafana/data';
+import { ExploreQueryFieldProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { MyQuery, MyDataSourceOptions } from '../types';
 
 type Props = ExploreQueryFieldProps<DataSource, MyQuery, MyDataSourceOptions>;
+
+const queryTypes = ['profile', 'quote', 'exchange', 'metric', 'earnings'];
 
 export const QueryEditor: FC<Props> = ({ onChange, query }) => {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -15,18 +18,18 @@ export const QueryEditor: FC<Props> = ({ onChange, query }) => {
     onChange({ ...query, symbol: event.target.value });
   };
 
-  const onTypeChange = (value: string) => {
+  const onTypeChange = (item: SelectableValue) => {
     //onChange({ ...query, namespace: value });
   };
 
-  const dataTypes = ['profile', 'quote', 'exchange'].map(type => ({ label: type.toUpperCase(), value: type }));
+  const dataTypes = queryTypes.map(type => ({ label: capitalize(type), value: type }));
   const { queryText, symbol } = query;
 
   return (
     <div className="gf-form">
       <>
         <FormLabel>Data type</FormLabel>
-        <Segment onChange={onTypeChange} options={dataTypes} value="profile" />
+        <Segment onChange={onTypeChange} options={dataTypes} value={capitalize(queryTypes[0])} />
       </>
       <FormField width={4} value={symbol || ''} onChange={onConstantChange} label="Symbol" />
       <FormField labelWidth={8} value={queryText || ''} onChange={onQueryTextChange} label="Query Text" tooltip="Not used yet" />

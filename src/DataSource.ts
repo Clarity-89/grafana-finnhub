@@ -31,7 +31,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     return { data: this.tableResponse(data) };
   }
 
-  tableResponse = (data: Array<string>) => {
+  tableResponse = (data: string[]) => {
     return data.map(item => {
       return {
         columns: Object.entries(item).map(([key, val]) => ({ text: key, type: typeof val === 'string' ? 'string' : 'number' })),

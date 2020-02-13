@@ -12,9 +12,13 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@grafana/data": "next",
+    "@grafana/runtime": "next",
     "@grafana/toolkit": "next",
     "@grafana/ui": "next",
-    "@types/lodash": "latest",
-    "@grafana/runtime": "next"
+    "@types/lodash": "latest"
+  },
+  "dependencies": {
+    "@types/lodash.capitalize": "^4.2.6",
+    "lodash.capitalize": "^4.2.1"
   }
 }
