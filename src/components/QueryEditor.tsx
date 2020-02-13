@@ -3,19 +3,12 @@ import capitalize from 'lodash.capitalize';
 import { FormField, FormLabel, Segment } from '@grafana/ui';
 import { ExploreQueryFieldProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
-import { defaultQuery, MyDataSourceOptions, MyQuery, TargetType } from '../types';
+import { defaultQuery, MyDataSourceOptions, MyQuery } from '../types';
 import { TABLE_QUERY_TYPES, TIMESERIES_QUERY_TYPES } from '../constants';
 
 type Props = ExploreQueryFieldProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 const queryTypes = [...TIMESERIES_QUERY_TYPES, ...TABLE_QUERY_TYPES];
-
-const getTargetType = (item: SelectableValue): TargetType => {
-  if (TIMESERIES_QUERY_TYPES.includes(item.value)) {
-    return TargetType.Timeseries;
-  }
-  return TargetType.Table;
-};
 
 export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -27,7 +20,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   };
 
   const onTypeChange = (item: SelectableValue) => {
-    onChange({ ...query, queryType: item, type: getTargetType(item) });
+    onChange({ ...query, queryType: item });
   };
 
   const onKeyDown = (event: React.KeyboardEvent) => {

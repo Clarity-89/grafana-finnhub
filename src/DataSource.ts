@@ -2,6 +2,7 @@ import { DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceS
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
 import { MyQuery, MyDataSourceOptions, defaultQuery, TargetType } from './types';
+import { getTargetType } from './utils';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
@@ -21,22 +22,25 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { targets } = options;
-    const promises = targets.map(target => {
+    //@ts-ignore
+    const promises = targets.flatMap(target => {
       const query = { ...defaultQuery, ...target };
       // Combine received data and its target
-      return this.get(query.queryType.value, { symbol: target.symbol?.toUpperCase() }).then(data => ({ ...target, data }));
+      return query.symbol
+        ?.split(',')
+        .map((sym: string) => this.get(query.queryType.value, { symbol: sym?.toUpperCase() }).then(data => ({ ...target, data })));
     });
 
     const data = await Promise.all(promises);
-    const isTable = targets.some(target => target.type === TargetType.Table);
+    const isTable = targets.some(target => getTargetType(target.queryType) === TargetType.Table);
     return { data: isTable ? this.tableResponse(data) : this.tsResponse(data) };
   }
 
-  tableResponse = (data: any[]) => {
-    return data.map(item => {
+  tableResponse = (targets: any[]) => {
+    return targets.map(target => {
       return {
-        columns: Object.entries(item).map(([key, val]) => ({ text: key, type: typeof val === 'string' ? 'string' : 'number' })),
-        rows: [Object.values(item).map(val => val)],
+        columns: Object.entries(target.data).map(([key, val]) => ({ text: key, type: typeof val === 'string' ? 'string' : 'number' })),
+        rows: [Object.values(target.data).map(val => val)],
         type: 'table',
       };
     });
