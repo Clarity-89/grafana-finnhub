@@ -1,7 +1,7 @@
 import { DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
-import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
+import { MyQuery, MyDataSourceOptions, defaultQuery, TargetType } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
@@ -21,15 +21,14 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { targets } = options;
-
     const promises = targets.map(target => {
       const query = { ...defaultQuery, ...target };
       return this.get(query.queryType.value, { symbol: target.symbol?.toUpperCase() });
     });
 
     const data = await Promise.all(promises);
-    console.log('d', data);
-    return { data: this.tableResponse(data) };
+    const isTable = targets.some(target => target.type === TargetType.Table);
+    return { data: isTable ? this.tableResponse(data) : this.tsResponse(data, targets) };
   }
 
   tableResponse = (data: string[]) => {
@@ -42,6 +41,16 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     });
   };
 
+  // Timeseries response
+  tsResponse(data: any[], targets: MyQuery[]) {
+    return targets.map(target => {
+      return {
+        target: target.symbol,
+        datapoints: data[0].map((dp: any) => [dp.actual, new Date(dp.period).getTime()]),
+      };
+    });
+  }
+
   async testDatasource() {
     const resp = await this.get('profile', { symbol: 'AAPL' });
     if (resp.status === 200) {
@@ -52,7 +61,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async get(dataType: string, params: any = {}) {
     try {
-      return await this.backendSrv.get(`${this.baseUrl}/${dataType}`, { token: this.token, ...params });
+      return await this.backendSrv.get(`${this.baseUrl}/${dataType}`, { ...params, token: this.token });
     } catch (e) {
       console.error('Error retrieving data', e);
     }
