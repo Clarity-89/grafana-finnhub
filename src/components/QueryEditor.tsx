@@ -9,7 +9,7 @@ type Props = ExploreQueryFieldProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 const queryTypes = ['profile', 'quote', 'exchange', 'metric', 'earnings'];
 
-export const QueryEditor: FC<Props> = ({ onChange, query }) => {
+export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange({ ...query, queryText: event.target.value });
   };
@@ -22,6 +22,12 @@ export const QueryEditor: FC<Props> = ({ onChange, query }) => {
     onChange({ ...query, queryType: item });
   };
 
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      onRunQuery();
+    }
+  };
+
   const dataTypes = queryTypes.map(type => ({ label: capitalize(type), value: type }));
   const { queryText, symbol, queryType } = { ...query, ...defaultQuery };
 
@@ -31,7 +37,7 @@ export const QueryEditor: FC<Props> = ({ onChange, query }) => {
         <FormLabel>Data type</FormLabel>
         <Segment onChange={onTypeChange} options={dataTypes} value={queryType} />
       </>
-      <FormField width={4} value={symbol || ''} onChange={onConstantChange} label="Symbol" />
+      <FormField width={4} value={symbol || ''} onChange={onConstantChange} onKeyDown={onKeyDown} label="Symbol" />
       <FormField labelWidth={8} value={queryText || ''} onChange={onQueryTextChange} label="Query Text" tooltip="Not used yet" />
     </div>
   );
