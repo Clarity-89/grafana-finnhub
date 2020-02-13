@@ -23,15 +23,16 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     const { targets } = options;
     const promises = targets.map(target => {
       const query = { ...defaultQuery, ...target };
-      return this.get(query.queryType.value, { symbol: target.symbol?.toUpperCase() });
+      // Combine received data and its target
+      return this.get(query.queryType.value, { symbol: target.symbol?.toUpperCase() }).then(data => ({ ...target, data }));
     });
 
     const data = await Promise.all(promises);
     const isTable = targets.some(target => target.type === TargetType.Table);
-    return { data: isTable ? this.tableResponse(data) : this.tsResponse(data, targets) };
+    return { data: isTable ? this.tableResponse(data) : this.tsResponse(data) };
   }
 
-  tableResponse = (data: string[]) => {
+  tableResponse = (data: any[]) => {
     return data.map(item => {
       return {
         columns: Object.entries(item).map(([key, val]) => ({ text: key, type: typeof val === 'string' ? 'string' : 'number' })),
@@ -42,13 +43,14 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   };
 
   // Timeseries response
-  tsResponse(data: any[], targets: MyQuery[]) {
-    return targets.map(target => {
-      return {
-        target: target.symbol,
-        datapoints: data[0].map((dp: any) => [dp.actual, new Date(dp.period).getTime()]),
-      };
+  tsResponse(targets: any[]) {
+    const d = targets.map(target => {
+      const keys = Object.keys(target.data[0]).filter(key => key !== 'period' && key !== 'symbol');
+      return keys.map(key => {
+        return { target: key, datapoints: target.data.map((dp: any) => [dp[key], new Date(dp.period).getTime()]) };
+      });
     });
+    return d[0];
   }
 
   async testDatasource() {
