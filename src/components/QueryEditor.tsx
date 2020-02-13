@@ -4,11 +4,11 @@ import { FormField, FormLabel, Segment } from '@grafana/ui';
 import { ExploreQueryFieldProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { MyQuery, MyDataSourceOptions, defaultQuery } from '../types';
+import { TABLE_QUERY_TYPES, TIMESERIES_QUERY_TYPES } from '../constants';
 
 type Props = ExploreQueryFieldProps<DataSource, MyQuery, MyDataSourceOptions>;
 
-const tsQueryTypes = ['quote', 'exchange', 'earnings'];
-const tableQueryTypes = ['profile', 'metrics'];
+const queryTypes = [...TIMESERIES_QUERY_TYPES, ...TABLE_QUERY_TYPES];
 
 export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -29,7 +29,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     }
   };
 
-  const dataTypes = [...tableQueryTypes, ...tsQueryTypes].map(type => ({ label: capitalize(type), value: type }));
+  const dataTypes = queryTypes.map(type => ({ label: capitalize(type), value: type }));
   const { queryText, symbol, queryType } = { ...defaultQuery, ...query };
 
   return (
