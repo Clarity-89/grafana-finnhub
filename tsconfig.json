@@ -1,6 +1,7 @@
 {
   "extends": "./node_modules/@grafana/toolkit/src/config/tsconfig.plugin.json",
   "include": ["src", "types"],
+  "lib": ["es6", "dom", "es2019"],
   "compilerOptions": {
     "rootDir": "./src",
     "baseUrl": "./src",

@@ -13,7 +13,7 @@
   "devDependencies": {
     "@grafana/data": "next",
     "@grafana/runtime": "next",
-    "@grafana/toolkit": "next",
+    "@grafana/toolkit": "^6.6.1",
     "@grafana/ui": "next",
     "@types/lodash": "latest"
   },
