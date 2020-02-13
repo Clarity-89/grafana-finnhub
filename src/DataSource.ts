@@ -1,7 +1,7 @@
 import { DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
-import { MyQuery, MyDataSourceOptions } from './types';
+import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
@@ -23,11 +23,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     const { targets } = options;
 
     const promises = targets.map(target => {
-      return this.get('profile', { symbol: target.symbol?.toUpperCase() });
+      const query = { ...target, ...defaultQuery };
+      return this.get(query.queryType.value, { symbol: target.symbol?.toUpperCase() });
     });
 
     const data = await Promise.all(promises);
-
+    console.log('d', data);
     return { data: this.tableResponse(data) };
   }
 
