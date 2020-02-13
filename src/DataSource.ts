@@ -23,7 +23,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     const { targets } = options;
 
     const promises = targets.map(target => {
-      const query = { ...target, ...defaultQuery };
+      const query = { ...defaultQuery, ...target };
       return this.get(query.queryType.value, { symbol: target.symbol?.toUpperCase() });
     });
 

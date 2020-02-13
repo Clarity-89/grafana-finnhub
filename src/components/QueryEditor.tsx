@@ -29,7 +29,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   };
 
   const dataTypes = queryTypes.map(type => ({ label: capitalize(type), value: type }));
-  const { queryText, symbol, queryType } = { ...query, ...defaultQuery };
+  const { queryText, symbol, queryType } = { ...defaultQuery, ...query };
 
   return (
     <div className="gf-form">
