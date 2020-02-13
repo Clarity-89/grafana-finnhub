@@ -3,7 +3,7 @@ import capitalize from 'lodash.capitalize';
 import { FormField, FormLabel, Segment } from '@grafana/ui';
 import { ExploreQueryFieldProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
-import { MyQuery, MyDataSourceOptions } from '../types';
+import { MyQuery, MyDataSourceOptions, defaultQuery } from '../types';
 
 type Props = ExploreQueryFieldProps<DataSource, MyQuery, MyDataSourceOptions>;
 
@@ -19,17 +19,17 @@ export const QueryEditor: FC<Props> = ({ onChange, query }) => {
   };
 
   const onTypeChange = (item: SelectableValue) => {
-    //onChange({ ...query, namespace: value });
+    onChange({ ...query, queryType: item });
   };
 
   const dataTypes = queryTypes.map(type => ({ label: capitalize(type), value: type }));
-  const { queryText, symbol } = query;
+  const { queryText, symbol, queryType } = { ...query, ...defaultQuery };
 
   return (
     <div className="gf-form">
       <>
         <FormLabel>Data type</FormLabel>
-        <Segment onChange={onTypeChange} options={dataTypes} value={capitalize(queryTypes[0])} />
+        <Segment onChange={onTypeChange} options={dataTypes} value={queryType} />
       </>
       <FormField width={4} value={symbol || ''} onChange={onConstantChange} label="Symbol" />
       <FormField labelWidth={8} value={queryText || ''} onChange={onQueryTextChange} label="Query Text" tooltip="Not used yet" />

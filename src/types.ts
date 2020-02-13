@@ -1,9 +1,14 @@
-import { DataQuery, DataSourceJsonData } from '@grafana/data';
+import { DataQuery, DataSourceJsonData, SelectableValue } from '@grafana/data';
 
 export interface MyQuery extends DataQuery {
   queryText?: string;
   symbol?: string;
+  queryType: SelectableValue;
 }
+
+export const defaultQuery: Partial<MyQuery> = {
+  queryType: { value: 'profile', label: 'Profile' },
+};
 
 /**
  * These are options configured for each DataSource instance
