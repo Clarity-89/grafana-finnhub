@@ -7,7 +7,8 @@ import { MyQuery, MyDataSourceOptions, defaultQuery } from '../types';
 
 type Props = ExploreQueryFieldProps<DataSource, MyQuery, MyDataSourceOptions>;
 
-const queryTypes = ['profile', 'quote', 'exchange', 'metric', 'earnings'];
+const tsQueryTypes = ['quote', 'exchange', 'earnings'];
+const tableQueryTypes = ['profile', 'metrics'];
 
 export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -28,7 +29,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     }
   };
 
-  const dataTypes = queryTypes.map(type => ({ label: capitalize(type), value: type }));
+  const dataTypes = [...tableQueryTypes, ...tsQueryTypes].map(type => ({ label: capitalize(type), value: type }));
   const { queryText, symbol, queryType } = { ...defaultQuery, ...query };
 
   return (

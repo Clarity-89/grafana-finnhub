@@ -1,13 +1,19 @@
 import { DataQuery, DataSourceJsonData, SelectableValue } from '@grafana/data';
 
+export enum TargetType {
+  Timeseries = 'TIMESERIES',
+  Table = 'TABLE',
+}
 export interface MyQuery extends DataQuery {
   queryText?: string;
   symbol?: string;
-  queryType: SelectableValue;
+  queryType: SelectableValue; // TODO think of a more appropriate name
+  type: TargetType;
 }
 
 export const defaultQuery: Partial<MyQuery> = {
   queryType: { value: 'profile', label: 'Profile' },
+  type: TargetType.Timeseries,
 };
 
 /**
