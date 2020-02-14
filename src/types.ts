@@ -30,3 +30,9 @@ export interface MyDataSourceOptions extends DataSourceJsonData {
 export interface MySecureJsonData {
   apiKey?: string;
 }
+
+export interface QueryParams {
+  symbol?: string;
+  limit?: number;
+  [key: string]: any;
+}

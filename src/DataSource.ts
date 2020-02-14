@@ -1,7 +1,7 @@
 import { DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
-import { MyQuery, MyDataSourceOptions, defaultQuery, TargetType } from './types';
+import { MyQuery, MyDataSourceOptions, defaultQuery, TargetType, QueryParams } from './types';
 import { getTargetType } from './utils';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
@@ -25,6 +25,11 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     //@ts-ignore
     const promises = targets.flatMap(target => {
       const query = { ...defaultQuery, ...target };
+      const { queryText } = target;
+      // Ignore other query params if there's a free text query
+      if (queryText) {
+        return this.freeTextQuery(queryText).then(data => ({ ...target, data }));
+      }
       // Combine received data and its target
       return query.symbol
         ?.split(',')
@@ -65,11 +70,20 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     return { status: 'error' };
   }
 
-  async get(dataType: string, params: any = {}) {
+  async freeTextQuery(query: string) {
+    try {
+      return await this.backendSrv.get(`${this.baseUrl}/${query}&token=${this.token}`);
+    } catch (e) {
+      console.error('Error retrieving data', e);
+    }
+  }
+
+  async get(dataType: string, params: QueryParams = {}) {
     try {
       return await this.backendSrv.get(`${this.baseUrl}/${dataType}`, { ...params, token: this.token });
     } catch (e) {
       console.error('Error retrieving data', e);
+      throw e;
     }
   }
 }
