@@ -15,7 +15,6 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     const queryType = value.split('?')[0];
-    console.log('qq', queryType);
     onChange({ ...query, queryText: value, type: getTargetType({ value: queryType }) });
   };
 
