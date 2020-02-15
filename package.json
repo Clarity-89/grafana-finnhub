@@ -13,8 +13,8 @@
   "devDependencies": {
     "@grafana/data": "next",
     "@grafana/runtime": "next",
-    "@grafana/toolkit": "^6.6.1",
-    "@grafana/ui": "next",
+    "@grafana/toolkit": "^6.7.0-pre-2c9b321c48",
+    "@grafana/ui": "^6.7.0-pre-ff6a082e23",
     "@types/lodash": "latest"
   },
   "dependencies": {

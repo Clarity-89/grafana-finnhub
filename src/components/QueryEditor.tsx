@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FC } from 'react';
 import capitalize from 'lodash.capitalize';
-import { FormField, FormLabel, Segment } from '@grafana/ui';
+import { Forms } from '@grafana/ui';
 import { ExploreQueryFieldProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from '../types';
@@ -18,8 +18,9 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     onChange({ ...query, queryText: value, type: getTargetType({ value: queryType }) });
   };
 
-  const onConstantChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, symbol: event.target.value });
+  const onValueChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    onChange({ ...query, [name]: value });
   };
 
   const onTypeChange = (item: SelectableValue) => {
@@ -36,20 +37,30 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const { queryText, symbol, queryType } = { ...defaultQuery, ...query };
 
   return (
-    <div className="gf-form">
-      <>
-        <FormLabel>Data type</FormLabel>
-        <Segment onChange={onTypeChange} options={dataTypes} value={queryType} />
-      </>
-      <FormField width={4} value={symbol || ''} onChange={onConstantChange} onKeyDown={onKeyDown} label="Symbol" />
-      <FormField
-        labelWidth={8}
-        value={queryText || ''}
-        onChange={onQueryTextChange}
-        onKeyDown={onKeyDown}
-        label="Query Text"
-        tooltip="Custom query e.g. 'earnings?symbol=AAPL'"
-      />
-    </div>
+    <Forms.Form onSubmit={onRunQuery}>
+      {({ register, errors }) => {
+        return (
+          <>
+            <Forms.Field label="Query Text" horizontal={false}>
+              <Forms.Input
+                size="lg"
+                name="customQuery"
+                ref={register}
+                value={queryText || ''}
+                onChange={onQueryTextChange}
+                onKeyDown={onKeyDown}
+                placeholder="Custom query e.g. 'earnings?symbol=AAPL'"
+              />
+            </Forms.Field>
+            <Forms.Field label="Data type">
+              <Forms.Select size="lg" onChange={onTypeChange} options={dataTypes} value={queryType} defaultValue={queryType} />
+            </Forms.Field>
+            <Forms.Field label="Symbol">
+              <Forms.Input size="lg" name="symbol" ref={register} value={symbol} onChange={onValueChange} onKeyDown={onKeyDown} />
+            </Forms.Field>
+          </>
+        );
+      }}
+    </Forms.Form>
   );
 };
