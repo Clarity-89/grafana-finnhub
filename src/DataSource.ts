@@ -53,8 +53,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   // Timeseries response
   tsResponse(targets: any[]) {
+    const excludedFields = ['period', 'symbol'];
     const d = targets.map(target => {
-      const keys = Object.keys(target.data[0]).filter(key => key !== 'period' && key !== 'symbol');
+      const keys = Object.keys(target.data[0]).filter(key => !excludedFields.includes(key));
       return keys.map(key => {
         return { target: key, datapoints: target.data.map((dp: any) => [dp[key], new Date(dp.period).getTime()]) };
       });
