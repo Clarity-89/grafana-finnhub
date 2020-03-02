@@ -1,7 +1,18 @@
-import { DataQueryRequest, DataQueryResponse, DataSourceApi, DataSourceInstanceSettings } from '@grafana/data';
+import {
+  DataQueryRequest,
+  DataQueryResponse,
+  DataSourceApi,
+  DataSourceInstanceSettings,
+} from '@grafana/data';
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
-import { MyQuery, MyDataSourceOptions, defaultQuery, TargetType, QueryParams } from './types';
+import {
+  MyQuery,
+  MyDataSourceOptions,
+  defaultQuery,
+  TargetType,
+  QueryParams,
+} from './types';
 import { getTargetType } from './utils';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
@@ -11,7 +22,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   websocketUrl: string;
 
   /** @ngInject */
-  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendService) {
+  constructor(
+    instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>,
+    private backendSrv: BackendService
+  ) {
     super(instanceSettings);
     this.dataSourceName = instanceSettings.name;
     const config = instanceSettings.jsonData;
@@ -28,23 +42,33 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       const { queryText } = target;
       // Ignore other query params if there's a free text query
       if (queryText) {
-        return this.freeTextQuery(queryText).then(data => ({ ...target, data }));
+        return this.freeTextQuery(queryText).then(data => ({
+          ...target,
+          data,
+        }));
       }
       // Combine received data and its target
-      return query.symbol
-        ?.split(',')
-        .map((sym: string) => this.get(query.queryType.value, { symbol: sym?.toUpperCase() }).then(data => ({ ...target, data })));
+      return query.symbol?.split(',').map((sym: string) =>
+        this.get(query.queryType.value, {
+          symbol: sym?.toUpperCase(),
+        }).then(data => ({ ...target, data }))
+      );
     });
 
     const data = await Promise.all(promises);
-    const isTable = targets.some(target => getTargetType(target.queryType) === TargetType.Table);
+    const isTable = targets.some(
+      target => getTargetType(target.queryType) === TargetType.Table
+    );
     return { data: isTable ? this.tableResponse(data) : this.tsResponse(data) };
   }
 
   tableResponse = (targets: any[]) => {
     return targets.map(target => {
       return {
-        columns: Object.entries(target.data).map(([key, val]) => ({ text: key, type: typeof val === 'string' ? 'string' : 'number' })),
+        columns: Object.entries(target.data).map(([key, val]) => ({
+          text: key,
+          type: typeof val === 'string' ? 'string' : 'number',
+        })),
         rows: [Object.values(target.data).map(val => val)],
         type: 'table',
       };
@@ -55,9 +79,17 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   tsResponse(targets: any[]) {
     const excludedFields = ['period', 'symbol'];
     const d = targets.map(target => {
-      const keys = Object.keys(target.data[0]).filter(key => !excludedFields.includes(key));
+      const keys = Object.keys(target.data[0]).filter(
+        key => !excludedFields.includes(key)
+      );
       return keys.map(key => {
-        return { target: key, datapoints: target.data.map((dp: any) => [dp[key], new Date(dp.period).getTime()]) };
+        return {
+          target: key,
+          datapoints: target.data.map((dp: any) => [
+            dp[key],
+            new Date(dp.period).getTime(),
+          ]),
+        };
       });
     });
     return d[0];
@@ -73,7 +105,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async freeTextQuery(query: string) {
     try {
-      return await this.backendSrv.get(`${this.baseUrl}/${query}&token=${this.token}`);
+      return await this.backendSrv.get(
+        `${this.baseUrl}/${query}&token=${this.token}`
+      );
     } catch (e) {
       console.error('Error retrieving data', e);
     }
@@ -81,7 +115,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async get(dataType: string, params: QueryParams = {}) {
     try {
-      return await this.backendSrv.get(`${this.baseUrl}/${dataType}`, { ...params, token: this.token });
+      return await this.backendSrv.get(`${this.baseUrl}/${dataType}`, {
+        ...params,
+        token: this.token,
+      });
     } catch (e) {
       console.error('Error retrieving data', e);
       throw e;

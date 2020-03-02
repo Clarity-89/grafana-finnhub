@@ -15,7 +15,11 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     const queryType = value.split('?')[0];
-    onChange({ ...query, queryText: value, type: getTargetType({ value: queryType }) });
+    onChange({
+      ...query,
+      queryText: value,
+      type: getTargetType({ value: queryType }),
+    });
   };
 
   const onValueChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -33,7 +37,10 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     }
   };
 
-  const dataTypes = queryTypes.map(type => ({ label: capitalize(type), value: type }));
+  const dataTypes = queryTypes.map(type => ({
+    label: capitalize(type),
+    value: type,
+  }));
   const { queryText, symbol, queryType } = { ...defaultQuery, ...query };
 
   return (
@@ -53,10 +60,23 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
               />
             </Forms.Field>
             <Forms.Field label="Data type">
-              <Forms.Select size="lg" onChange={onTypeChange} options={dataTypes} value={queryType} defaultValue={queryType} />
+              <Forms.Select
+                size="lg"
+                onChange={onTypeChange}
+                options={dataTypes}
+                value={queryType}
+                defaultValue={queryType}
+              />
             </Forms.Field>
             <Forms.Field label="Symbol">
-              <Forms.Input size="lg" name="symbol" ref={register} value={symbol} onChange={onValueChange} onKeyDown={onKeyDown} />
+              <Forms.Input
+                size="lg"
+                name="symbol"
+                ref={register}
+                value={symbol}
+                onChange={onValueChange}
+                onKeyDown={onKeyDown}
+              />
             </Forms.Field>
           </>
         );
