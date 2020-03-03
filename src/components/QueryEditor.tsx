@@ -41,7 +41,9 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     label: capitalize(type),
     value: type,
   }));
-  const { queryText, symbol, queryType } = { ...defaultQuery, ...query };
+
+  const { queryText, symbol, queryType, resolution, count } = { ...defaultQuery, ...query };
+  const inputSize = 'lg';
 
   return (
     <Forms.Form onSubmit={onRunQuery}>
@@ -50,7 +52,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
           <>
             <Forms.Field label="Query Text" horizontal={false}>
               <Forms.Input
-                size="lg"
+                size={inputSize}
                 name="customQuery"
                 ref={register}
                 value={queryText || ''}
@@ -61,7 +63,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
             </Forms.Field>
             <Forms.Field label="Data type">
               <Forms.Select
-                size="lg"
+                size={inputSize}
                 onChange={onTypeChange}
                 options={dataTypes}
                 value={queryType}
@@ -70,7 +72,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
             </Forms.Field>
             <Forms.Field label="Symbol">
               <Forms.Input
-                size="lg"
+                size={inputSize}
                 name="symbol"
                 ref={register}
                 value={symbol}
@@ -78,6 +80,23 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
                 onKeyDown={onKeyDown}
               />
             </Forms.Field>
+
+            {queryType.value === 'candle' && (
+              <>
+                <Forms.Field label="Resolution">
+                  <Forms.Input
+                    size={inputSize}
+                    name="resolution"
+                    ref={register}
+                    value={resolution}
+                    onChange={onValueChange}
+                  />
+                </Forms.Field>
+                <Forms.Field label="Count">
+                  <Forms.Input size={inputSize} name="count" ref={register} value={count} onChange={onValueChange} />
+                </Forms.Field>
+              </>
+            )}
           </>
         );
       }}
