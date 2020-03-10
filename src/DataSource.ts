@@ -36,7 +36,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     this.dataSourceName = instanceSettings.name;
     const config = instanceSettings.jsonData;
     this.token = config.apiToken;
-    this.baseUrl = `https://finnhub.io/api/v1/stock`;
+    this.baseUrl = `https://finnhub.io/api/v1/`;
     this.websocketUrl = `wss://ws.finnhub.io?token=${this.token}`;
   }
 
@@ -71,12 +71,11 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         }));
       }
 
+      console.log('q', query);
       // Combine received data and its target
       return query.symbol
         ?.split(',')
-        .map((sym: string) =>
-          this.get(queryType.value, { ...query, symbol: sym?.toUpperCase() }).then(data => ({ ...target, data }))
-        );
+        .map((symbol: string) => this.get(queryType.value, { ...query, symbol }).then(data => ({ ...target, data })));
     });
 
     const data = await Promise.all(promises);
@@ -142,8 +141,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async get(dataType: string, params: QueryParams = {}) {
+    const url = `${this.baseUrl}${dataType === 'quote' ? '' : '/stock'}`;
     try {
-      return await this.backendSrv.get(`${this.baseUrl}/${dataType}`, {
+      return await this.backendSrv.get(`${url}/${dataType}`, {
         ...params,
         token: this.token,
       });
