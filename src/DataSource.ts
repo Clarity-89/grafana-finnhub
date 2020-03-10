@@ -3,18 +3,27 @@ import {
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
+  TimeSeries,
 } from '@grafana/data';
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
-import {
-  MyQuery,
-  MyDataSourceOptions,
-  defaultQuery,
-  TargetType,
-  QueryParams,
-} from './types';
+import { MyQuery, MyDataSourceOptions, defaultQuery, TargetType, QueryParams, CandleQuery } from './types';
 import { getTargetType } from './utils';
 
+// const dataExtractors = {
+//   //@ts-ignore
+//   candle: ({ data }) => data.t.map((time, i) => [data.o[i], time]),
+//   earnings: (target: any) => {
+//     const excludedFields = ['period', 'symbol'];
+//     const keys = Object.keys(target.data[0]).filter(key => !excludedFields.includes(key));
+//     return keys.map(key => {
+//       return {
+//         target: key,
+//         datapoints: target.data.map((dp: any) => [dp[key], new Date(dp.period).getTime()]),
+//       };
+//     });
+//   },
+// };
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
   token: string;
@@ -22,10 +31,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   websocketUrl: string;
 
   /** @ngInject */
-  constructor(
-    instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>,
-    private backendSrv: BackendService
-  ) {
+  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendService) {
     super(instanceSettings);
     this.dataSourceName = instanceSettings.name;
     const config = instanceSettings.jsonData;
@@ -34,11 +40,28 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     this.websocketUrl = `wss://ws.finnhub.io?token=${this.token}`;
   }
 
+  constructQuery(target: Partial<MyQuery & CandleQuery>) {
+    switch (target.queryType?.value) {
+      case 'candle': {
+        const { symbol, resolution, count } = target;
+        return { symbol, resolution, count };
+      }
+
+      default: {
+        return {
+          symbol: target.symbol?.toUpperCase(),
+        };
+      }
+    }
+  }
+
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { targets } = options;
+
     //@ts-ignore
     const promises = targets.flatMap(target => {
-      const query = { ...defaultQuery, ...target };
+      const { queryType } = target;
+      const query = this.constructQuery({ ...defaultQuery, ...target });
       const { queryText } = target;
       // Ignore other query params if there's a free text query
       if (queryText) {
@@ -47,19 +70,19 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           data,
         }));
       }
+
       // Combine received data and its target
-      return query.symbol?.split(',').map((sym: string) =>
-        this.get(query.queryType.value, {
-          symbol: sym?.toUpperCase(),
-        }).then(data => ({ ...target, data }))
-      );
+      return query.symbol
+        ?.split(',')
+        .map((sym: string) =>
+          this.get(queryType.value, { ...query, symbol: sym?.toUpperCase() }).then(data => ({ ...target, data }))
+        );
     });
 
     const data = await Promise.all(promises);
-    const isTable = targets.some(
-      target => getTargetType(target.queryType) === TargetType.Table
-    );
-    return { data: isTable ? this.tableResponse(data) : this.tsResponse(data) };
+
+    const isTable = targets.some(target => getTargetType(target.queryType) === TargetType.Table);
+    return { data: isTable ? this.tableResponse(data) : this.tsResponse(data[0]) };
   }
 
   tableResponse = (targets: any[]) => {
@@ -76,23 +99,30 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   };
 
   // Timeseries response
-  tsResponse(targets: any[]) {
-    const excludedFields = ['period', 'symbol'];
-    const d = targets.map(target => {
-      const keys = Object.keys(target.data[0]).filter(
-        key => !excludedFields.includes(key)
-      );
-      return keys.map(key => {
-        return {
-          target: key,
-          datapoints: target.data.map((dp: any) => [
-            dp[key],
-            new Date(dp.period).getTime(),
-          ]),
-        };
-      });
-    });
-    return d[0];
+  tsResponse(target: any): TimeSeries[] {
+    const { data } = target;
+    switch (target.queryType?.value) {
+      case 'earnings': {
+        const excludedFields = ['period', 'symbol'];
+        const keys = Object.keys(data[0]).filter(key => !excludedFields.includes(key));
+        return keys.map(key => {
+          return {
+            target: key,
+            datapoints: data.map((dp: any) => [dp[key], new Date(dp.period).getTime()]),
+          };
+        });
+      }
+      case 'candle':
+      case 'quote':
+        return [
+          {
+            target: 'open price',
+            datapoints: data.t.map((time: any, i: number) => [data.o[i], time]),
+          },
+        ];
+      default:
+        return [];
+    }
   }
 
   async testDatasource() {
@@ -105,9 +135,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async freeTextQuery(query: string) {
     try {
-      return await this.backendSrv.get(
-        `${this.baseUrl}/${query}&token=${this.token}`
-      );
+      return await this.backendSrv.get(`${this.baseUrl}/${query}&token=${this.token}`);
     } catch (e) {
       console.error('Error retrieving data', e);
     }
