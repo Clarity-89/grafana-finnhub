@@ -11,20 +11,6 @@ import { BackendSrv as BackendService } from '@grafana/runtime';
 import { MyQuery, MyDataSourceOptions, defaultQuery, TargetType, QueryParams, CandleQuery } from './types';
 import { getTargetType } from './utils';
 
-// const dataExtractors = {
-//   //@ts-ignore
-//   candle: ({ data }) => data.t.map((time, i) => [data.o[i], time]),
-//   earnings: (target: any) => {
-//     const excludedFields = ['period', 'symbol'];
-//     const keys = Object.keys(target.data[0]).filter(key => !excludedFields.includes(key));
-//     return keys.map(key => {
-//       return {
-//         target: key,
-//         datapoints: target.data.map((dp: any) => [dp[key], new Date(dp.period).getTime()]),
-//       };
-//     });
-//   },
-// };
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
   token: string;
@@ -120,12 +106,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           },
         ];
       case 'candle':
-        return [
-          {
-            target: 'open price',
-            datapoints: data.t.map((time: any, i: number) => [data.o[i], time * 1000]),
-          },
-        ];
+        const fields = ['open price', 'close price'];
+
+        return fields.map(field => ({
+          target: field,
+          datapoints: data.t.map((time: any, i: number) => [data[field.charAt(0)][i], time * 1000]),
+        }));
       default:
         return [];
     }
