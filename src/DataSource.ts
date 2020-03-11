@@ -43,26 +43,28 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
     const symbol = target.symbol?.toUpperCase();
+    let query;
     switch (target.queryType?.value) {
       case 'candle': {
         const { resolution } = target;
-        return { symbol, resolution, from: range.from.unix(), to: range.to.unix() };
+        query = { symbol, resolution, from: range.from.unix(), to: range.to.unix() };
+        break;
       }
 
       default: {
-        return {
+        query = {
           symbol,
         };
       }
     }
+    return [query, target.queryType?.value];
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { targets, range } = options;
+    console.log('t', targets);
     //@ts-ignore
     const promises = targets.flatMap(target => {
-      const { queryType } = target;
-      const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
       const { queryText } = target;
       // Ignore other query params if there's a free text query
       if (queryText) {
@@ -72,15 +74,15 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         }));
       }
 
+      const [query, queryType] = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
       // Combine received data and its target
       return query.symbol
         ?.split(',')
-        .map((symbol: string) => this.get(queryType.value, { ...query, symbol }).then(data => ({ ...target, data })));
+        .map((symbol: string) => this.get(queryType, { ...query, symbol }).then(data => ({ ...target, data })));
     });
 
     const data = await Promise.all(promises);
     const isTable = targets.some(target => getTargetType(target.queryType) === TargetType.Table);
-
     return { data: isTable ? this.tableResponse(data) : this.tsResponse(data[0]) };
   }
 
@@ -122,7 +124,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         return [
           {
             target: 'open price',
-            datapoints: data.t.map((time: any, i: number) => [data.o[i], new Date(time).getTime()]),
+            datapoints: data.t.map((time: any, i: number) => [data.o[i], time * 1000]),
           },
         ];
       default:
