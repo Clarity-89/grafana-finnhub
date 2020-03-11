@@ -16,6 +16,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   token: string;
   baseUrl: string;
   websocketUrl: string;
+  data: any;
 
   /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendService) {
@@ -25,50 +26,47 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     this.token = config.apiToken;
     this.baseUrl = `https://finnhub.io/api/v1/`;
     this.websocketUrl = `wss://ws.finnhub.io?token=${this.token}`;
+    // Save the date without time ranges to avoid repeated api calls
+    this.data = {};
   }
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
     const symbol = target.symbol?.toUpperCase();
-    let query;
     switch (target.queryType?.value) {
       case 'candle': {
         const { resolution } = target;
-        query = { symbol, resolution, from: range.from.unix(), to: range.to.unix() };
-        break;
+        return { symbol, resolution, from: range.from.unix(), to: range.to.unix() };
       }
 
       default: {
-        query = {
+        return {
           symbol,
         };
       }
     }
-    return [query, target.queryType?.value];
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { targets, range } = options;
-    //@ts-ignore
-    const promises = targets.flatMap(target => {
-      const { queryText } = target;
+    const promises = targets.map(target => {
+      const { queryText, queryType } = target;
+      let request;
       // Ignore other query params if there's a free text query
       if (queryText) {
-        return this.freeTextQuery(queryText).then(data => ({
-          ...target,
-          data,
-        }));
+        request = this.freeTextQuery(queryText);
+      } else {
+        const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
+        request = this.get(queryType.value, query);
       }
 
-      const [query, queryType] = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
       // Combine received data and its target
-      return query.symbol
-        ?.split(',')
-        .map((symbol: string) => this.get(queryType, { ...query, symbol }).then(data => ({ ...target, data })));
+      return request.then(data => {
+        const isTable = getTargetType(queryType) === TargetType.Table;
+        return isTable ? this.tableResponse(data) : this.tsResponse(data, queryType.value);
+      });
     });
-
     const data = await Promise.all(promises);
-    const isTable = targets.some(target => getTargetType(target.queryType) === TargetType.Table);
-    return { data: isTable ? this.tableResponse(data) : this.tsResponse(data[0]) };
+    return { data: data.flat() };
   }
 
   tableResponse = (targets: any[]) => {
@@ -85,9 +83,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   };
 
   // Timeseries response
-  tsResponse(target: any): TimeSeries[] {
-    const { data } = target;
-    switch (target.queryType?.value) {
+  tsResponse(data: any, type: string): TimeSeries[] {
+    switch (type) {
       case 'earnings': {
         const excludedFields = ['period', 'symbol'];
         const keys = Object.keys(data[0]).filter(key => !excludedFields.includes(key));
@@ -134,7 +131,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async get(dataType: string, params: QueryParams = {}) {
-    const url = `${this.baseUrl}${dataType === 'quote' ? '' : '/stock'}`;
+    const url = `${this.baseUrl}${dataType === 'quote' ? '' : 'stock'}`;
     try {
       return await this.backendSrv.get(`${url}/${dataType}`, {
         ...params,
