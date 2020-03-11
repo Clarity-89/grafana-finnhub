@@ -22,6 +22,7 @@ export const defaultQuery: Partial<MyQuery | CandleQuery> = {
   type: TargetType.Timeseries,
   count: 1000,
   resolution: 1,
+  symbol: '',
 };
 
 /**
