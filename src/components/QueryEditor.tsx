@@ -42,7 +42,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     value: type,
   }));
 
-  const { queryText, symbol, queryType, resolution, count } = { ...defaultQuery, ...query };
+  const { queryText, symbol, queryType, resolution } = { ...defaultQuery, ...query };
   const inputSize = 'lg';
 
   return (
@@ -87,13 +87,11 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
                   <Forms.Input
                     size={inputSize}
                     name="resolution"
+                    placeholder="Available values: 1, 5, 15, 30, 60, D, W, M"
                     ref={register}
                     value={resolution}
                     onChange={onValueChange}
                   />
-                </Forms.Field>
-                <Forms.Field label="Count">
-                  <Forms.Input size={inputSize} name="count" ref={register} value={count} onChange={onValueChange} />
                 </Forms.Field>
               </>
             )}
