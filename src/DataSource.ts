@@ -4,6 +4,7 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
   TimeSeries,
+  TimeRange,
 } from '@grafana/data';
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
@@ -40,28 +41,28 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     this.websocketUrl = `wss://ws.finnhub.io?token=${this.token}`;
   }
 
-  constructQuery(target: Partial<MyQuery & CandleQuery>) {
+  constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
+    const symbol = target.symbol?.toUpperCase();
     switch (target.queryType?.value) {
       case 'candle': {
-        const { symbol, resolution, count } = target;
-        return { symbol, resolution, count };
+        const { resolution } = target;
+        return { symbol, resolution, from: range.from.unix(), to: range.to.unix() };
       }
 
       default: {
         return {
-          symbol: target.symbol?.toUpperCase(),
+          symbol,
         };
       }
     }
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-    const { targets } = options;
-
+    const { targets, range } = options;
     //@ts-ignore
     const promises = targets.flatMap(target => {
       const { queryType } = target;
-      const query = this.constructQuery({ ...defaultQuery, ...target });
+      const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
       const { queryText } = target;
       // Ignore other query params if there's a free text query
       if (queryText) {
@@ -71,7 +72,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         }));
       }
 
-      console.log('q', query);
       // Combine received data and its target
       return query.symbol
         ?.split(',')
@@ -79,8 +79,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     });
 
     const data = await Promise.all(promises);
-
     const isTable = targets.some(target => getTargetType(target.queryType) === TargetType.Table);
+
     return { data: isTable ? this.tableResponse(data) : this.tsResponse(data[0]) };
   }
 
@@ -111,12 +111,18 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           };
         });
       }
-      case 'candle':
       case 'quote':
         return [
           {
+            target: 'current price',
+            datapoints: [data.c, data.t],
+          },
+        ];
+      case 'candle':
+        return [
+          {
             target: 'open price',
-            datapoints: data.t.map((time: any, i: number) => [data.o[i], time]),
+            datapoints: data.t.map((time: any, i: number) => [data.o[i], new Date(time).getTime()]),
           },
         ];
       default:
