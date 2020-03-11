@@ -62,7 +62,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { targets, range } = options;
-    console.log('t', targets);
     //@ts-ignore
     const promises = targets.flatMap(target => {
       const { queryText } = target;
