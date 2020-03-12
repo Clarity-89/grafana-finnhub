@@ -24,7 +24,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     this.dataSourceName = instanceSettings.name;
     const config = instanceSettings.jsonData;
     this.token = config.apiToken;
-    this.baseUrl = `https://finnhub.io/api/v1/`;
+    this.baseUrl = `https://finnhub.io/api/v1`;
     this.websocketUrl = `wss://ws.finnhub.io?token=${this.token}`;
     // Save the date without time ranges to avoid repeated api calls
     this.data = {};
@@ -130,7 +130,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async get(dataType: string, params: QueryParams = {}) {
-    const url = `${this.baseUrl}${dataType === 'quote' ? '' : 'stock'}`;
+    const url = `${this.baseUrl}${dataType === 'quote' ? '' : '/stock'}`;
     try {
       return await this.backendSrv.get(`${url}/${dataType}`, {
         ...params,
