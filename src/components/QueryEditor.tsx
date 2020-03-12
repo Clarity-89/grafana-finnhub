@@ -63,6 +63,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
             </Forms.Field>
             <Forms.Field label="Data type">
               <Forms.Select
+                data-testid="Data type"
                 size={inputSize}
                 onChange={onTypeChange}
                 options={dataTypes}
@@ -78,6 +79,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
                 value={symbol}
                 onChange={onValueChange}
                 onKeyDown={onKeyDown}
+                placeholder="Stock symbol"
               />
             </Forms.Field>
 
