@@ -13,9 +13,12 @@
   "devDependencies": {
     "@grafana/data": "next",
     "@grafana/runtime": "next",
-    "@grafana/toolkit": "^6.7.0-pre-2c9b321c48",
-    "@grafana/ui": "^6.7.0-pre-ff6a082e23",
-    "@types/lodash": "latest"
+    "@grafana/toolkit": "^6.7.0-beta1",
+    "@grafana/ui": "^6.7.0-beta1",
+    "@testing-library/jest-dom": "^5.1.1",
+    "@testing-library/react": "^9.5.0",
+    "@types/lodash": "latest",
+    "mutationobserver-shim": "^0.3.3"
   },
   "dependencies": {
     "@types/lodash.capitalize": "^4.2.6",
