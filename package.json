@@ -4,7 +4,7 @@
   "description": "Example of a Grafana Data Source",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
-    "test": "grafana-toolkit plugin:test",
+    "test": "grafana-toolkit plugin:test --watch",
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch"
   },
@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@types/lodash.capitalize": "^4.2.6",
-    "lodash.capitalize": "^4.2.1"
+    "lodash.capitalize": "^4.2.1",
+    "moment": "^2.24.0"
   }
 }
