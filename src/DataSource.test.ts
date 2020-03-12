@@ -38,7 +38,14 @@ const getDs = () =>
 describe('DataSource', () => {
   it('should construct query based on params', () => {
     const ds = getDs();
-    const range = { to: moment(), from: moment().subtract(1, 'month') };
-    expect(ds.constructQuery({ symbol: 'test' }, range)).toEqual({ symbol: 'TEST' });
+    const target = { symbol: 'test' };
+    const range = { to: moment(), from: moment().subtract(1, 'months') };
+    expect(ds.constructQuery(target, range)).toEqual({ symbol: 'TEST' });
+    expect(ds.constructQuery({ ...target, queryType: { value: 'candle' }, resolution: 'M' }, range)).toEqual({
+      symbol: 'TEST',
+      resolution: 'M',
+      to: range.to.unix(),
+      from: range.from.unix(),
+    });
   });
 });
