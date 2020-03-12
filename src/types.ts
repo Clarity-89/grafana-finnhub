@@ -17,7 +17,7 @@ export interface CandleQuery {
   resolution: number;
 }
 
-export const defaultQuery: Partial<MyQuery | CandleQuery> = {
+export const defaultQuery: Partial<MyQuery & CandleQuery> = {
   queryType: { value: 'profile', label: 'Profile' },
   type: TargetType.Timeseries,
   count: 1000,

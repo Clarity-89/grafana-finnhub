@@ -49,7 +49,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { targets, range } = options;
     const promises = targets.map(target => {
-      const { queryText, queryType } = target;
+      const targetWithDefaults = { ...defaultQuery, ...target };
+      const { queryText, queryType } = targetWithDefaults;
       let request;
       // Ignore other query params if there's a free text query
       if (queryText) {
@@ -69,17 +70,15 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     return { data: data.flat() };
   }
 
-  tableResponse = (targets: any[]) => {
-    return targets.map(target => {
-      return {
-        columns: Object.entries(target.data).map(([key, val]) => ({
-          text: key,
-          type: typeof val === 'string' ? 'string' : 'number',
-        })),
-        rows: [Object.values(target.data).map(val => val)],
-        type: 'table',
-      };
-    });
+  tableResponse = (data: any) => {
+    return {
+      columns: Object.entries(data).map(([key, val]) => ({
+        text: key,
+        type: typeof val === 'string' ? 'string' : 'number',
+      })),
+      rows: [Object.values(data).map(val => val)],
+      type: 'table',
+    };
   };
 
   // Timeseries response
