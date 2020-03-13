@@ -7,13 +7,14 @@ import { defaultQuery } from '../types';
 
 describe('QueryEditor', () => {
   it('should render the editor with default form values', () => {
-    const { getByPlaceholderText, getByTestId } = render(
+    const { getByPlaceholderText, getByText } = render(
       //@ts-ignore
       <QueryEditor history={[]} datasource={DataSource} query={{}} onRunQuery={jest.fn()} onChange={jest.fn()} />
     );
 
     expect(getByPlaceholderText("Custom query e.g. 'earnings?symbol=AAPL'")).toHaveValue('');
     expect(getByPlaceholderText('Stock symbol')).toHaveValue(defaultQuery.symbol);
-    //expect(getByTestId('Data type')).toHaveValue(defaultQuery.queryType?.value);
+    //@ts-ignore
+    expect(getByText(defaultQuery.queryType?.label)).toBeInTheDocument();
   });
 });
