@@ -16,7 +16,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   token: string;
   baseUrl: string;
   websocketUrl: string;
-  data: any;
 
   /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendService) {
@@ -26,8 +25,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     this.token = config.apiToken;
     this.baseUrl = `https://finnhub.io/api/v1`;
     this.websocketUrl = `wss://ws.finnhub.io?token=${this.token}`;
-    // Save the date without time ranges to avoid repeated api calls
-    this.data = {};
   }
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
