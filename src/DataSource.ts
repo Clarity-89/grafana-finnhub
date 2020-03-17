@@ -95,7 +95,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         return [
           {
             target: 'current price',
-            datapoints: [data.c, data.t],
+            datapoints: [[data.c, data.t * 1000]],
           },
         ];
       case 'candle':
