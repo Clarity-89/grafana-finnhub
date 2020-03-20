@@ -71,17 +71,19 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
                 defaultValue={queryType}
               />
             </Forms.Field>
-            <Forms.Field label="Symbol">
-              <Forms.Input
-                size={inputSize}
-                name="symbol"
-                ref={register}
-                value={symbol}
-                onChange={onValueChange}
-                onKeyDown={onKeyDown}
-                placeholder="Stock symbol"
-              />
-            </Forms.Field>
+            {queryType.value !== 'exchange' && (
+              <Forms.Field label="Symbol">
+                <Forms.Input
+                  size={inputSize}
+                  name="symbol"
+                  ref={register}
+                  value={symbol}
+                  onChange={onValueChange}
+                  onKeyDown={onKeyDown}
+                  placeholder="Stock symbol"
+                />
+              </Forms.Field>
+            )}
 
             {queryType.value === 'candle' && (
               <>
