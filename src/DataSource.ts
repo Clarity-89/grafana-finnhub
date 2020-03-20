@@ -68,11 +68,22 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   tableResponse = (data: any) => {
-    return {
-      columns: Object.entries(data).map(([key, val]) => ({
+    const getColumns = (obj: any) => {
+      return Object.entries(obj).map(([key, val]) => ({
         text: key,
         type: typeof val === 'string' ? 'string' : 'number',
-      })),
+      }));
+    };
+
+    if (Array.isArray(data)) {
+      return {
+        columns: getColumns(data[0]),
+        rows: data.map(d => Object.values(d).map(val => val)),
+      };
+    }
+
+    return {
+      columns: getColumns(data),
       rows: [Object.values(data).map(val => val)],
       type: 'table',
     };

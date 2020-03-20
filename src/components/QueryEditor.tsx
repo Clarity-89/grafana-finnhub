@@ -29,6 +29,9 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
 
   const onTypeChange = (item: SelectableValue) => {
     onChange({ ...query, queryType: item });
+    if (item.value === 'exchange') {
+      onRunQuery();
+    }
   };
 
   const onKeyDown = (event: React.KeyboardEvent) => {
