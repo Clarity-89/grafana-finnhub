@@ -9,7 +9,7 @@ import {
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
 import { MyQuery, MyDataSourceOptions, defaultQuery, TargetType, QueryParams, CandleQuery } from './types';
-import { getTargetType } from './utils';
+import { ensureArray, getTargetType } from './utils';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
@@ -60,32 +60,20 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       // Combine received data and its target
       return request.then(data => {
         const isTable = getTargetType(queryType) === TargetType.Table;
-        return isTable ? this.tableResponse(data) : this.tsResponse(data, queryType.value);
+        return isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, queryType.value);
       });
     });
     const data = await Promise.all(promises);
     return { data: data.flat() };
   }
 
-  tableResponse = (data: any) => {
-    const getColumns = (obj: any) => {
-      return Object.entries(obj).map(([key, val]) => ({
+  tableResponse = (data: any[]) => {
+    return {
+      columns: Object.entries(data[0]).map(([key, val]) => ({
         text: key,
         type: typeof val === 'string' ? 'string' : 'number',
-      }));
-    };
-
-    if (Array.isArray(data)) {
-      return {
-        columns: getColumns(data[0]),
-        rows: data.map(d => Object.values(d).map(val => val)),
-      };
-    }
-
-    return {
-      columns: getColumns(data),
-      rows: [Object.values(data).map(val => val)],
-      type: 'table',
+      })),
+      rows: data.map(d => Object.values(d).map(val => val)),
     };
   };
 

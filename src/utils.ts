@@ -8,3 +8,13 @@ export const getTargetType = (item: SelectableValue = {}): TargetType => {
   }
   return TargetType.Table;
 };
+
+export const ensureArray = (val: any): any[] => {
+  if (!val) {
+    return [];
+  } else if (Array.isArray(val)) {
+    return val;
+  } else {
+    return [val];
+  }
+};
