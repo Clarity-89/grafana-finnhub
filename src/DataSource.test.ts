@@ -86,5 +86,36 @@ describe('DataSource', () => {
     ]);
   });
 
+  describe('tableResponse', () => {
+    const data = [
+      {
+        address: '1 Apple Park Way',
+        city: 'CUPERTINO',
+        country: 'US',
+        description: 'Apple Inc. designs',
+        name: 'Apple Inc',
+      },
+    ];
+    //@ts-ignore
+    const ds = getDs({}, { get: () => candleResponse });
+
+    it('should return correct data for table response', () => {
+      expect(ds.tableResponse(data)).toEqual({
+        columns: [
+          { text: 'address', type: 'string' },
+          { text: 'city', type: 'string' },
+          { text: 'country', type: 'string' },
+          { text: 'description', type: 'string' },
+          { text: 'name', type: 'string' },
+        ],
+        rows: [['1 Apple Park Way', 'CUPERTINO', 'US', 'Apple Inc. designs', 'Apple Inc']],
+      });
+    });
+
+    it('should not throw an error when data is empty', () => {
+      expect(ds.tableResponse([])).toEqual({});
+    });
+  });
+
   // TODO Test that query has correct args when called with default values
 });

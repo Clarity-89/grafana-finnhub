@@ -68,6 +68,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   tableResponse = (data: any[]) => {
+    if (!data.length) return {};
     return {
       columns: Object.entries(data[0]).map(([key, val]) => ({
         text: key,
