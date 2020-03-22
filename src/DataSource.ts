@@ -34,7 +34,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         const { resolution } = target;
         return { symbol, resolution, from: range.from.unix(), to: range.to.unix() };
       }
-
+      case 'metric':
+        return { symbol, metric: target.metric.value };
       default: {
         return {
           symbol,
@@ -60,6 +61,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       // Combine received data and its target
       return request.then(data => {
         const isTable = getTargetType(queryType) === TargetType.Table;
+        if (data.metric) data = data.metric;
         return isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, queryType.value);
       });
     });

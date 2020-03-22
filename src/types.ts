@@ -23,6 +23,7 @@ export const defaultQuery: Partial<MyQuery & CandleQuery> = {
   count: 1000,
   resolution: 1,
   symbol: '',
+  metric: { value: 'price', label: 'price' },
 };
 
 /**

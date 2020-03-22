@@ -4,12 +4,13 @@ import { Forms } from '@grafana/ui';
 import { ExploreQueryFieldProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from '../types';
-import { TABLE_QUERY_TYPES, TIMESERIES_QUERY_TYPES } from '../constants';
+import { stockMetrics, TABLE_QUERY_TYPES, TIMESERIES_QUERY_TYPES } from '../constants';
 import { getTargetType } from '../utils';
 
 type Props = ExploreQueryFieldProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 const queryTypes = [...TIMESERIES_QUERY_TYPES, ...TABLE_QUERY_TYPES];
+const metricOptions = stockMetrics.map(metric => ({ value: metric, label: metric }));
 
 export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -34,6 +35,10 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     }
   };
 
+  const onMetricChange = (item: SelectableValue) => {
+    onChange({ ...query, metric: item });
+  };
+
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       onRunQuery();
@@ -45,7 +50,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     value: type,
   }));
 
-  const { queryText, symbol, queryType, resolution } = { ...defaultQuery, ...query };
+  const { queryText, symbol, queryType, resolution, metric } = { ...defaultQuery, ...query };
   const inputSize = 'lg';
 
   return (
@@ -89,18 +94,28 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
             )}
 
             {queryType.value === 'candle' && (
-              <>
-                <Forms.Field label="Resolution">
-                  <Forms.Input
-                    size={inputSize}
-                    name="resolution"
-                    placeholder="Available values: 1, 5, 15, 30, 60, D, W, M"
-                    ref={register}
-                    value={resolution}
-                    onChange={onValueChange}
-                  />
-                </Forms.Field>
-              </>
+              <Forms.Field label="Resolution">
+                <Forms.Input
+                  size={inputSize}
+                  name="resolution"
+                  placeholder="Available values: 1, 5, 15, 30, 60, D, W, M"
+                  ref={register}
+                  value={resolution}
+                  onChange={onValueChange}
+                />
+              </Forms.Field>
+            )}
+
+            {queryType.value === 'metric' && (
+              <Forms.Field label="Metric">
+                <Forms.Select
+                  size={inputSize}
+                  onChange={onMetricChange}
+                  options={metricOptions}
+                  value={metric}
+                  defaultValue={metric}
+                />
+              </Forms.Field>
             )}
           </>
         );
