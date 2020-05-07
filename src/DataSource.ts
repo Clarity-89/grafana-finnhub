@@ -61,7 +61,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       // Combine received data and its target
       return request.then(data => {
         const isTable = getTargetType(queryType) === TargetType.Table;
-        if (data.metric) data = data.metric;
+        if (data.metric) {
+          data = data.metric;
+        }
         return isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, queryType.value);
       });
     });
@@ -70,7 +72,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   tableResponse = (data: any[]) => {
-    if (!data.length) return {};
+    if (!data.length) {
+      return {};
+    }
     return {
       columns: Object.entries(data[0]).map(([key, val]) => ({
         text: key,
