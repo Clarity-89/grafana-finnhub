@@ -1,5 +1,5 @@
 import React, { FC, ChangeEvent } from 'react';
-import { FormField } from '@grafana/ui';
+import { Forms, Input } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { MyDataSourceOptions } from '../types';
 
@@ -15,37 +15,11 @@ export const ConfigEditor: FC<Props> = ({ options, onOptionsChange, ...props }) 
     });
   };
 
-  const onResetAPIKey = () => {
-    onOptionsChange({
-      ...options,
-      secureJsonFields: {
-        ...options.secureJsonFields,
-        apiKey: false,
-      },
-      secureJsonData: {
-        ...options.secureJsonData,
-        apiKey: '',
-      },
-    });
-  };
-
   const { jsonData } = options;
 
   return (
-    <div className="gf-form-group">
-      <div className="gf-form-inline">
-        <div className="gf-form">
-          <FormField
-            value={jsonData.apiToken || ''}
-            label="API Token"
-            placeholder="Token for the Finnhub API"
-            labelWidth={6}
-            inputWidth={20}
-            onReset={onResetAPIKey}
-            onChange={onAPIKeyChange}
-          />
-        </div>
-      </div>
-    </div>
+    <Forms.Field label="API Token">
+      <Input value={jsonData.apiToken || ''} placeholder="Token for the Finnhub API" onChange={onAPIKeyChange} />
+    </Forms.Field>
   );
 };
