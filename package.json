@@ -11,10 +11,10 @@
   "author": "Grafana Labs",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/data": "next",
-    "@grafana/runtime": "next",
-    "@grafana/toolkit": "^6.7.0-beta1",
-    "@grafana/ui": "^6.7.0-beta1",
+    "@grafana/data": "canary",
+    "@grafana/runtime": "canary",
+    "@grafana/toolkit": "canary",
+    "@grafana/ui": "canary",
     "@testing-library/jest-dom": "^5.1.1",
     "@testing-library/react": "^9.5.0",
     "@types/lodash": "latest",
@@ -22,7 +22,10 @@
   },
   "dependencies": {
     "@types/lodash.capitalize": "^4.2.6",
+    "g": "^2.0.1",
+    "lerna": "^3.20.2",
     "lodash.capitalize": "^4.2.1",
-    "moment": "^2.24.0"
+    "moment": "^2.24.0",
+    "plop": "^2.6.0"
   }
 }
