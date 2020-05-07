@@ -7,8 +7,9 @@ export enum TargetType {
 export interface MyQuery extends DataQuery {
   queryText?: string;
   symbol?: string;
-  queryType: SelectableValue; // TODO think of a more appropriate name
-  type: TargetType;
+  type: SelectableValue;
+  format: TargetType;
+  metric: SelectableValue;
 }
 
 export interface CandleQuery {
@@ -17,9 +18,9 @@ export interface CandleQuery {
   resolution: number;
 }
 
-export const defaultQuery: Partial<MyQuery & CandleQuery> = {
-  queryType: { value: 'profile', label: 'Profile' },
-  type: TargetType.Timeseries,
+export const defaultQuery: Partial<MyQuery | CandleQuery> = {
+  type: { value: 'profile', label: 'Profile' },
+  format: TargetType.Timeseries,
   count: 1000,
   resolution: 1,
   symbol: '',
@@ -32,13 +33,6 @@ export const defaultQuery: Partial<MyQuery & CandleQuery> = {
 export interface MyDataSourceOptions extends DataSourceJsonData {
   path?: string;
   apiToken: string;
-}
-
-/**
- * Value that is used in the backend, but never sent over HTTP to the frontend
- */
-export interface MySecureJsonData {
-  apiKey?: string;
 }
 
 export interface QueryParams {

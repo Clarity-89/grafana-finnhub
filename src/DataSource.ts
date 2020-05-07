@@ -29,13 +29,13 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
     const symbol = target.symbol?.toUpperCase();
-    switch (target.queryType?.value) {
+    switch (target.type?.value) {
       case 'candle': {
         const { resolution } = target;
         return { symbol, resolution, from: range.from.unix(), to: range.to.unix() };
       }
       case 'metric':
-        return { symbol, metric: target.metric.value };
+        return { symbol, metric: target?.metric?.value };
       default: {
         return {
           symbol,
@@ -48,23 +48,23 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     const { targets, range } = options;
     const promises = targets.map(target => {
       const targetWithDefaults = { ...defaultQuery, ...target };
-      const { queryText, queryType } = targetWithDefaults;
+      const { queryText, type } = targetWithDefaults;
       let request;
       // Ignore other query params if there's a free text query
       if (queryText) {
         request = this.freeTextQuery(queryText);
       } else {
         const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
-        request = this.get(queryType.value, query);
+        request = this.get(type.value, query);
       }
 
       // Combine received data and its target
       return request.then(data => {
-        const isTable = getTargetType(queryType) === TargetType.Table;
+        const isTable = getTargetType(type) === TargetType.Table;
         if (data.metric) {
           data = data.metric;
         }
-        return isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, queryType.value);
+        return isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, type.value);
       });
     });
     const data = await Promise.all(promises);

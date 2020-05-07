@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FC } from 'react';
 import capitalize from 'lodash.capitalize';
-import { Forms } from '@grafana/ui';
+import { Forms, Input, Select } from '@grafana/ui';
 import { ExploreQueryFieldProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from '../types';
@@ -19,7 +19,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     onChange({
       ...query,
       queryText: value,
-      type: getTargetType({ value: queryType }),
+      format: getTargetType({ value: queryType }),
     });
   };
 
@@ -29,7 +29,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   };
 
   const onTypeChange = (item: SelectableValue) => {
-    onChange({ ...query, queryType: item });
+    onChange({ ...query, type: item });
     if (item.value === 'exchange') {
       onRunQuery();
     }
@@ -50,8 +50,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     value: type,
   }));
 
-  const { queryText, symbol, queryType, resolution, metric } = { ...defaultQuery, ...query };
-  const inputSize = 'lg';
+  const { queryText, symbol, type, resolution, metric } = { ...defaultQuery, ...query };
 
   return (
     <Forms.Form onSubmit={onRunQuery}>
@@ -59,8 +58,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
         return (
           <>
             <Forms.Field label="Query Text" horizontal={false}>
-              <Forms.Input
-                size={inputSize}
+              <Input
                 name="customQuery"
                 ref={register}
                 value={queryText || ''}
@@ -70,19 +68,17 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
               />
             </Forms.Field>
             <Forms.Field label="Data type">
-              <Forms.Select
+              <Select
                 data-testid="Data type"
-                size={inputSize}
                 onChange={onTypeChange}
                 options={dataTypes}
-                value={queryType}
-                defaultValue={queryType}
+                value={type}
+                defaultValue={type}
               />
             </Forms.Field>
-            {queryType.value !== 'exchange' && (
+            {type.value !== 'exchange' && (
               <Forms.Field label="Symbol">
-                <Forms.Input
-                  size={inputSize}
+                <Input
                   name="symbol"
                   ref={register}
                   value={symbol}
@@ -93,10 +89,9 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
               </Forms.Field>
             )}
 
-            {queryType.value === 'candle' && (
+            {type.value === 'candle' && (
               <Forms.Field label="Resolution">
-                <Forms.Input
-                  size={inputSize}
+                <Input
                   name="resolution"
                   placeholder="Available values: 1, 5, 15, 30, 60, D, W, M"
                   ref={register}
@@ -106,15 +101,9 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
               </Forms.Field>
             )}
 
-            {queryType.value === 'metric' && (
+            {type.value === 'metric' && (
               <Forms.Field label="Metric">
-                <Forms.Select
-                  size={inputSize}
-                  onChange={onMetricChange}
-                  options={metricOptions}
-                  value={metric}
-                  defaultValue={metric}
-                />
+                <Select onChange={onMetricChange} options={metricOptions} value={metric} defaultValue={metric} />
               </Forms.Field>
             )}
           </>
