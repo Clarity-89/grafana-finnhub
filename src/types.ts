@@ -19,7 +19,7 @@ export interface CandleQuery {
 }
 
 export const defaultQuery: Partial<MyQuery | CandleQuery> = {
-  type: { value: 'profile', label: 'Profile' },
+  type: { value: 'profile2', label: 'Profile' },
   format: TargetType.Timeseries,
   count: 1000,
   resolution: 1,
