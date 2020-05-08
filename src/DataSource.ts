@@ -36,11 +36,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       }
       case 'metric':
         return { symbol, metric: target?.metric?.value };
-      default: {
+      default:
         return {
           symbol,
         };
-      }
     }
   }
 

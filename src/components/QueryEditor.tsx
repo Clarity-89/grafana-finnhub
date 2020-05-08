@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FC } from 'react';
 import capitalize from 'lodash.capitalize';
-import { Forms, Input, Select } from '@grafana/ui';
+import { Form, Field, Input, Select } from '@grafana/ui';
 import { ExploreQueryFieldProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from '../types';
@@ -53,11 +53,11 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const { queryText, symbol, type, resolution, metric } = { ...defaultQuery, ...query };
 
   return (
-    <Forms.Form onSubmit={onRunQuery}>
+    <Form onSubmit={onRunQuery}>
       {({ register, errors }) => {
         return (
           <>
-            <Forms.Field label="Query Text" horizontal={false}>
+            <Field label="Query Text" horizontal={false}>
               <Input
                 name="customQuery"
                 ref={register}
@@ -66,8 +66,8 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
                 onKeyDown={onKeyDown}
                 placeholder="Custom query e.g. 'earnings?symbol=AAPL'"
               />
-            </Forms.Field>
-            <Forms.Field label="Data type">
+            </Field>
+            <Field label="Data type">
               <Select
                 data-testid="Data type"
                 onChange={onTypeChange}
@@ -75,9 +75,9 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
                 value={type}
                 defaultValue={type}
               />
-            </Forms.Field>
+            </Field>
             {type.value !== 'exchange' && (
-              <Forms.Field label="Symbol">
+              <Field label="Symbol">
                 <Input
                   name="symbol"
                   ref={register}
@@ -86,11 +86,11 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
                   onKeyDown={onKeyDown}
                   placeholder="Stock symbol"
                 />
-              </Forms.Field>
+              </Field>
             )}
 
             {type.value === 'candle' && (
-              <Forms.Field label="Resolution">
+              <Field label="Resolution">
                 <Input
                   name="resolution"
                   placeholder="Available values: 1, 5, 15, 30, 60, D, W, M"
@@ -98,17 +98,17 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
                   value={resolution}
                   onChange={onValueChange}
                 />
-              </Forms.Field>
+              </Field>
             )}
 
             {type.value === 'metric' && (
-              <Forms.Field label="Metric">
+              <Field label="Metric">
                 <Select onChange={onMetricChange} options={metricOptions} value={metric} defaultValue={metric} />
-              </Forms.Field>
+              </Field>
             )}
           </>
         );
       }}
-    </Forms.Form>
+    </Form>
   );
 };
