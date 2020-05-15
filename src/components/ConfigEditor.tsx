@@ -1,5 +1,5 @@
 import React, { FC, ChangeEvent } from 'react';
-import { Forms, Input } from '@grafana/ui';
+import { Field, Input } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { MyDataSourceOptions } from '../types';
 
@@ -18,8 +18,8 @@ export const ConfigEditor: FC<Props> = ({ options, onOptionsChange, ...props }) 
   const { jsonData } = options;
 
   return (
-    <Forms.Field label="API Token">
+    <Field label="API Token">
       <Input value={jsonData.apiToken || ''} placeholder="Token for the Finnhub API" onChange={onAPIKeyChange} />
-    </Forms.Field>
+    </Field>
   );
 };
