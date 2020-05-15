@@ -46,7 +46,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   };
 
   const dataTypes = queryTypes.map(type => ({
-    label: capitalize(type),
+    label: capitalize(type).replace(/\d+/g, ''), // Remove numbers from labels
     value: type,
   }));
 
