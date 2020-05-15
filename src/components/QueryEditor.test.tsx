@@ -15,6 +15,6 @@ describe('QueryEditor', () => {
     expect(getByPlaceholderText("Custom query e.g. 'earnings?symbol=AAPL'")).toHaveValue('');
     expect(getByPlaceholderText('Stock symbol')).toHaveValue(defaultQuery.symbol);
     //@ts-ignore
-    expect(getByText(defaultQuery.queryType?.label)).toBeInTheDocument();
+    expect(getByText('Profile')).toBeInTheDocument();
   });
 });
