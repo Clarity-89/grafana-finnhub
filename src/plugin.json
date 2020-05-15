@@ -11,15 +11,15 @@
     },
     "keywords": ["Finnhub"],
     "logos": {
-      "small": "img/logo.svg",
-      "large": "img/logo.svg"
+      "small": "img/logo.png",
+      "large": "img/logo.png"
     },
     "links": [
       { "name": "Website", "url": "https://github.com/Clarity-89/grafana-finnhub" },
       { "name": "License", "url": "https://github.com/Clarity-89/grafana-finnhub/blob/master/LICENSE" }
     ],
     "screenshots": [],
-    "version": "%VERSION%",
+    "version": "0.0.1",
     "updated": "%TODAY%"
   },
 
