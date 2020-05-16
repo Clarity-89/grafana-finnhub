@@ -5,7 +5,7 @@ import { MyDataSourceOptions } from '../types';
 
 interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions> {}
 
-export const ConfigEditor: FC<Props> = ({ options, onOptionsChange, ...props }) => {
+export const ConfigEditor: FC<Props> = ({ options, onOptionsChange }) => {
   const onAPIKeyChange = (event: ChangeEvent<HTMLInputElement>) => {
     onOptionsChange({
       ...options,
