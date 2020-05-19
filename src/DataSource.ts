@@ -19,6 +19,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   token: string;
   baseUrl: string;
   websocketUrl: string;
+  sockets: WebSocket[];
 
   /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendService) {
@@ -28,6 +29,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     this.token = config.apiToken;
     this.baseUrl = `https://finnhub.io/api/v1`;
     this.websocketUrl = `wss://ws.finnhub.io?token=${this.token}`;
+    this.sockets = [];
   }
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
@@ -48,7 +50,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     }
   }
 
-  sockets: any = [];
   closeSockets = () => {
     this.sockets.forEach((socket: WebSocket) => socket.close(1001));
   };
@@ -68,7 +69,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
           //@ts-ignore
           frame.refId = query.refId;
-          frame.addField({ name: 'time', type: FieldType.time });
+          frame.addField({ name: 'ts', type: FieldType.time });
           frame.addField({ name: 'value', type: FieldType.number });
 
           const socket = new WebSocket(this.websocketUrl);
@@ -83,7 +84,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
               const data = JSON.parse(event.data);
               if (data.type === 'trade') {
                 const { t, p } = data.data[0];
-                frame.add({ time: t, value: p });
+                frame.add({ ts: t, value: p });
 
                 subscriber.next({
                   data: [frame],
