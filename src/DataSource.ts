@@ -51,13 +51,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   closeSockets = () => {
-    this.sockets.forEach((socket: WebSocket) => socket.close(1001));
+    this.sockets.forEach((socket: WebSocket) => socket.close());
   };
 
   query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> | Observable<DataQueryResponse> {
-    this.closeSockets();
     const { targets, range } = options;
-    if (targets[0].type?.value === 'quote') {
+    if (targets[0].type?.value === 'trades') {
       const observables = targets.map(target => {
         const targetWithDefaults = { ...defaultQuery, ...target };
         const query = this.constructQuery(targetWithDefaults, range as TimeRange);

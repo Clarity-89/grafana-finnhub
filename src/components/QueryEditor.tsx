@@ -57,16 +57,18 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
       {({ register, errors }) => {
         return (
           <>
-            <Field label="Query Text" horizontal={false}>
-              <Input
-                name="customQuery"
-                ref={register}
-                value={queryText || ''}
-                onChange={onQueryTextChange}
-                onKeyDown={onKeyDown}
-                placeholder="Custom query e.g. 'earnings?symbol=AAPL'"
-              />
-            </Field>
+            {type.value !== 'trades' && (
+              <Field label="Query Text" horizontal={false}>
+                <Input
+                  name="customQuery"
+                  ref={register}
+                  value={queryText || ''}
+                  onChange={onQueryTextChange}
+                  onKeyDown={onKeyDown}
+                  placeholder="Custom query e.g. 'earnings?symbol=AAPL'"
+                />
+              </Field>
+            )}
             <Field label="Data type">
               <Select
                 data-testid="Data type"
