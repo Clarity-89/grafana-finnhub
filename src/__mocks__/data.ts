@@ -19,7 +19,7 @@ export const data = {
   intervalMs: 86400000,
   targets: [
     {
-      queryType: {
+      type: {
         label: 'Candle',
         value: 'candle',
       },

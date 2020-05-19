@@ -40,7 +40,7 @@ describe('DataSource', () => {
     const target = { symbol: 'test' };
     const range = { to: moment(), from: moment().subtract(1, 'months') };
     expect(ds.constructQuery(target, range)).toEqual({ symbol: 'TEST' });
-    expect(ds.constructQuery({ ...target, queryType: { value: 'candle' }, resolution: 'M' }, range)).toEqual({
+    expect(ds.constructQuery({ ...target, type: { value: 'candle' }, resolution: 'M' }, range)).toEqual({
       symbol: 'TEST',
       resolution: 'M',
       to: range.to.unix(),

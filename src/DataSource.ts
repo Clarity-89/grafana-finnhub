@@ -1,8 +1,11 @@
+import { Observable, merge } from 'rxjs';
 import {
+  CircularDataFrame,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
+  FieldType,
   TimeSeries,
   TimeRange,
 } from '@grafana/data';
@@ -29,45 +32,91 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
     const symbol = target.symbol?.toUpperCase();
+    const refId = { target };
     switch (target.type?.value) {
       case 'candle': {
         const { resolution } = target;
-        return { symbol, resolution, from: range.from.unix(), to: range.to.unix() };
+        return { symbol, resolution, from: range.from.unix(), to: range.to.unix(), refId };
       }
       case 'metric':
-        return { symbol, metric: target?.metric?.value };
+        return { symbol, metric: target?.metric?.value, refId };
       default:
         return {
           symbol,
+          refId,
         };
     }
   }
 
-  async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
+  query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> | Observable<DataQueryResponse> {
     const { targets, range } = options;
-    const promises = targets.map(target => {
-      const targetWithDefaults = { ...defaultQuery, ...target };
-      const { queryText, type } = targetWithDefaults;
-      let request;
-      // Ignore other query params if there's a free text query
-      if (queryText) {
-        request = this.freeTextQuery(queryText);
-      } else {
-        const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
-        request = this.get(type.value, query);
-      }
+    console.log('t', targets);
+    if (targets[0].type?.value === 'quote') {
+      const observables = targets.map(target => {
+        const targetWithDefaults = { ...defaultQuery, ...target };
+        const query = this.constructQuery(targetWithDefaults, range as TimeRange);
+        return new Observable<DataQueryResponse>(subscriber => {
+          const frame = new CircularDataFrame({
+            append: 'tail',
+            capacity: 1000,
+          });
 
-      // Combine received data and its target
-      return request.then(data => {
-        const isTable = getTargetType(type) === TargetType.Table;
-        if (data.metric) {
-          data = data.metric;
-        }
-        return isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, type.value);
+          //@ts-ignore
+          frame.refId = query.refId;
+          frame.addField({ name: 'time', type: FieldType.time });
+          frame.addField({ name: 'value', type: FieldType.number });
+
+          const socket = new WebSocket(this.websocketUrl);
+          socket.onopen = () => {
+            socket.send(JSON.stringify({ type: 'subscribe', symbol: query.symbol }));
+          };
+
+          socket.onerror = (error: any) => console.log(`WebSocket error: ${JSON.stringify(error)}`);
+
+          socket.onmessage = (event: any) => {
+            try {
+              const data = JSON.parse(event.data);
+              if (data.type === 'trade') {
+                const { t, p } = data.data[0];
+                frame.add({ time: t, value: p });
+
+                subscriber.next({
+                  data: [frame],
+                  //@ts-ignore
+                  key: query.refId,
+                });
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          };
+        });
       });
-    });
-    const data = await Promise.all(promises);
-    return { data: data.flat() };
+      return merge(...observables);
+    } else {
+      const promises = targets.map(target => {
+        const targetWithDefaults = { ...defaultQuery, ...target };
+        const { queryText, type } = targetWithDefaults;
+        let request;
+        // Ignore other query params if there's a free text query
+        if (queryText) {
+          request = this.freeTextQuery(queryText);
+        } else {
+          const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
+          request = this.get(type.value, query);
+        }
+
+        // Combine received data and its target
+        return request.then(data => {
+          const isTable = getTargetType(type) === TargetType.Table;
+          if (data.metric) {
+            data = data.metric;
+          }
+          return isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, type.value);
+        });
+      });
+      return Promise.all(promises).then(data => ({ data: data.flat() }));
+    }
   }
 
   tableResponse = (data: any[]) => {
