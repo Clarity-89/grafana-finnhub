@@ -48,9 +48,14 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     }
   }
 
+  sockets: any = [];
+  closeSockets = () => {
+    this.sockets.forEach((socket: WebSocket) => socket.close(1001));
+  };
+
   query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> | Observable<DataQueryResponse> {
+    this.closeSockets();
     const { targets, range } = options;
-    console.log('t', targets);
     if (targets[0].type?.value === 'quote') {
       const observables = targets.map(target => {
         const targetWithDefaults = { ...defaultQuery, ...target };
@@ -72,8 +77,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           };
 
           socket.onerror = (error: any) => console.log(`WebSocket error: ${JSON.stringify(error)}`);
-
-          socket.onmessage = (event: any) => {
+          socket.onclose = () => subscriber.complete();
+          socket.onmessage = (event: MessageEvent) => {
             try {
               const data = JSON.parse(event.data);
               if (data.type === 'trade') {
@@ -90,6 +95,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
               console.error(e);
             }
           };
+          this.sockets.push(socket);
         });
       });
       return merge(...observables);
