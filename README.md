@@ -7,4 +7,5 @@
 - [Earnings surprises](https://finnhub.io/docs/api#company-earnings)
 - [Stock candles](https://finnhub.io/docs/api#stock-candles)
 - [Metrics](https://finnhub.io/docs/api#company-metrics)
+- [Trades](https://finnhub.io/docs/api#websocket-price)
  
