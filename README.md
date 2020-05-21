@@ -9,3 +9,4 @@
 - [Metrics](https://finnhub.io/docs/api#company-metrics)
 - [Trades](https://finnhub.io/docs/api#websocket-price)
  
+A sample dashboard provisioning file is available at `provision/dashboard.json`. [Read more](https://grafana.com/tutorials/provision-dashboards-and-data-sources) about dashboards provisioning. 
