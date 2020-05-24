@@ -72,10 +72,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           frame.addField({ name: 'value', type: FieldType.number });
 
           const socket = new WebSocket(this.websocketUrl);
-          socket.onopen = () => {
-            socket.send(JSON.stringify({ type: 'subscribe', symbol: query.symbol }));
-          };
-
+          socket.onopen = () => socket.send(JSON.stringify({ type: 'subscribe', symbol: query.symbol }));
           socket.onerror = (error: any) => console.log(`WebSocket error: ${JSON.stringify(error)}`);
           socket.onclose = () => subscriber.complete();
           socket.onmessage = (event: MessageEvent) => {
