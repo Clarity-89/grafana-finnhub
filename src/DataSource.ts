@@ -156,7 +156,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           },
         ];
       case 'candle':
-        const fields = ['open price', 'close price', 'high price', 'low price', 'volume data'];
+        const fields = ['open', 'close', 'high', 'low', 'volume'];
         return fields.map(field => ({
           target: field,
           datapoints: data.t.map((time: any, i: number) => [data[field.charAt(0)][i], time * 1000]),
