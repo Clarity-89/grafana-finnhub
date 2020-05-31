@@ -13,6 +13,7 @@ import { BackendSrv as BackendService } from '@grafana/runtime';
 
 import { MyQuery, MyDataSourceOptions, defaultQuery, TargetType, QueryParams, CandleQuery } from './types';
 import { ensureArray, getTargetType } from './utils';
+import { candleFields } from './constants';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
@@ -156,9 +157,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           },
         ];
       case 'candle':
-        const fields = ['open', 'close', 'high', 'low', 'volume'];
-        return fields.map(field => ({
+        return [...candleFields].map(([field, label]) => ({
           target: field,
+          title: label,
           datapoints: data.t.map((time: any, i: number) => [data[field.charAt(0)][i], time * 1000]),
         }));
       default:
