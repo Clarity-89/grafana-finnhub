@@ -1,4 +1,5 @@
-import { Observable, merge } from 'rxjs';
+import { from, merge, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   CircularDataFrame,
   DataQueryRequest,
@@ -6,12 +7,13 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
   FieldType,
-  TimeSeries,
+  MutableDataFrame,
   TimeRange,
+  TimeSeries,
 } from '@grafana/data';
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
-import { MyQuery, MyDataSourceOptions, defaultQuery, TargetType, QueryParams, CandleQuery } from './types';
+import { CandleQuery, defaultQuery, MyDataSourceOptions, MyQuery, QueryParams, TargetType } from './types';
 import { ensureArray, getTargetType } from './utils';
 import { candleFields } from './constants';
 
@@ -49,12 +51,13 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     }
   }
 
-  query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> | Observable<DataQueryResponse> {
+  query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
     const { targets, range } = options;
-    if (targets[0].type?.value === 'trades') {
-      const observables = targets.map(target => {
-        const targetWithDefaults = { ...defaultQuery, ...target };
-        const query = this.constructQuery(targetWithDefaults, range as TimeRange);
+
+    const observables = targets.map(target => {
+      const targetWithDefaults = { ...defaultQuery, ...target };
+      const query = this.constructQuery(targetWithDefaults, range as TimeRange);
+      if (target.type?.value === 'trades') {
         return new Observable<DataQueryResponse>(subscriber => {
           const frame = new CircularDataFrame({
             append: 'tail',
@@ -93,13 +96,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             socket.close();
           };
         });
-      });
-      return merge(...observables);
-    } else {
-      const promises = targets.map(target => {
-        const targetWithDefaults = { ...defaultQuery, ...target };
-        const { queryText, type } = targetWithDefaults;
+      } else {
         let request;
+        const { queryText, type } = targetWithDefaults;
         // Ignore other query params if there's a free text query
         if (queryText) {
           request = this.freeTextQuery(queryText);
@@ -109,29 +108,51 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         }
 
         // Combine received data and its target
-        return request.then(data => {
-          const isTable = getTargetType(type) === TargetType.Table;
-          if (data.metric) {
-            data = data.metric;
-          }
-          return isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, type.value);
-        });
-      });
-      return Promise.all(promises).then(data => ({ data: data.flat() }));
-    }
+        const isTable = getTargetType(type) === TargetType.Table;
+        return from(request).pipe(
+          map(data => {
+            if (data.metric) {
+              data = data.metric;
+            }
+            return { data: isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, type.value) };
+          })
+        );
+      }
+    });
+    return merge(...observables);
   }
 
   tableResponse = (data: any[]) => {
+    // Empty data frame
     if (!data.length) {
-      return {};
+      return [
+        new MutableDataFrame({
+          fields: [
+            {
+              name: 'no data',
+              type: FieldType.string,
+              values: [],
+            },
+          ],
+          meta: {
+            preferredVisualisationType: 'table',
+          },
+        }),
+      ];
     }
-    return {
-      columns: Object.entries(data[0]).map(([key, val]) => ({
-        text: key,
-        type: typeof val === 'string' ? 'string' : 'number',
-      })),
-      rows: data.map(d => Object.values(d).map(val => val)),
-    };
+
+    return data.map(d => {
+      return new MutableDataFrame({
+        fields: Object.entries(d).map(([key, val]) => ({
+          name: key,
+          type: typeof val === 'string' ? FieldType.string : FieldType.number,
+          values: [val],
+        })),
+        meta: {
+          preferredVisualisationType: 'table',
+        },
+      });
+    });
   };
 
   // Timeseries response
