@@ -20,7 +20,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   token: string;
   baseUrl: string;
   websocketUrl: string;
-  sockets: WebSocket[];
 
   /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendService) {
@@ -30,7 +29,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     this.token = config.apiToken;
     this.baseUrl = `https://finnhub.io/api/v1`;
     this.websocketUrl = `wss://ws.finnhub.io?token=${this.token}`;
-    this.sockets = [];
   }
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
@@ -50,10 +48,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         };
     }
   }
-
-  closeSockets = () => {
-    this.sockets.forEach((socket: WebSocket) => socket.close());
-  };
 
   query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> | Observable<DataQueryResponse> {
     const { targets, range } = options;
@@ -93,7 +87,11 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
               console.error(e);
             }
           };
-          this.sockets.push(socket);
+
+          return () => {
+            socket.send(JSON.stringify({ type: 'unsubscribe', symbol: query.symbol }));
+            socket.close();
+          };
         });
       });
       return merge(...observables);
