@@ -35,7 +35,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
     const symbol = target.symbol?.toUpperCase();
-    const refId = { target };
+    const { refId } = target;
     switch (target.type?.value) {
       case 'candle': {
         const { resolution } = target;
@@ -54,71 +54,71 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
     const { targets, range } = options;
 
-    const observables = targets.map(target => {
-      const targetWithDefaults = { ...defaultQuery, ...target };
-      const query = this.constructQuery(targetWithDefaults, range as TimeRange);
-      if (target.type?.value === 'trades') {
-        return new Observable<DataQueryResponse>(subscriber => {
-          const frame = new CircularDataFrame({
-            append: 'tail',
-            capacity: 1000,
-          });
+    const observables = targets
+      .filter(target => !target.hide)
+      .map(target => {
+        const targetWithDefaults = { ...defaultQuery, ...target };
+        const query = this.constructQuery(targetWithDefaults, range as TimeRange);
+        if (target.type?.value === 'trades') {
+          return new Observable<DataQueryResponse>(subscriber => {
+            const frame = new CircularDataFrame({
+              append: 'tail',
+              capacity: 1000,
+            });
 
-          //@ts-ignore
-          frame.refId = query.refId;
-          frame.addField({ name: 'ts', type: FieldType.time });
-          frame.addField({ name: 'value', type: FieldType.number });
+            frame.refId = query.refId;
+            frame.addField({ name: 'ts', type: FieldType.time });
+            frame.addField({ name: 'value', type: FieldType.number });
 
-          const socket = new WebSocket(this.websocketUrl);
-          socket.onopen = () => socket.send(JSON.stringify({ type: 'subscribe', symbol: query.symbol }));
-          socket.onerror = (error: any) => console.log(`WebSocket error: ${JSON.stringify(error)}`);
-          socket.onclose = () => subscriber.complete();
-          socket.onmessage = (event: MessageEvent) => {
-            try {
-              const data = JSON.parse(event.data);
-              if (data.type === 'trade') {
-                const { t, p } = data.data[0];
-                frame.add({ ts: t, value: p });
+            const socket = new WebSocket(this.websocketUrl);
+            socket.onopen = () => socket.send(JSON.stringify({ type: 'subscribe', symbol: query.symbol }));
+            socket.onerror = (error: any) => console.log(`WebSocket error: ${JSON.stringify(error)}`);
+            socket.onclose = () => subscriber.complete();
+            socket.onmessage = (event: MessageEvent) => {
+              try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'trade') {
+                  const { t, p } = data.data[0];
+                  frame.add({ ts: t, value: p });
 
-                subscriber.next({
-                  data: [frame],
-                  //@ts-ignore
-                  key: query.refId,
-                });
+                  subscriber.next({
+                    data: [frame],
+                    key: query.refId,
+                  });
+                }
+              } catch (e) {
+                console.error(e);
               }
-            } catch (e) {
-              console.error(e);
-            }
-          };
+            };
 
-          return () => {
-            socket.send(JSON.stringify({ type: 'unsubscribe', symbol: query.symbol }));
-            socket.close();
-          };
-        });
-      } else {
-        let request;
-        const { queryText, type } = targetWithDefaults;
-        // Ignore other query params if there's a free text query
-        if (queryText) {
-          request = this.freeTextQuery(queryText);
+            return () => {
+              socket.send(JSON.stringify({ type: 'unsubscribe', symbol: query.symbol }));
+              socket.close();
+            };
+          });
         } else {
-          const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
-          request = this.get(type.value, query);
-        }
+          let request;
+          const { queryText, type } = targetWithDefaults;
+          // Ignore other query params if there's a free text query
+          if (queryText) {
+            request = this.freeTextQuery(queryText);
+          } else {
+            const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
+            request = this.get(type.value, query);
+          }
 
-        // Combine received data and its target
-        const isTable = getTargetType(type) === TargetType.Table;
-        return from(request).pipe(
-          map(data => {
-            if (data.metric) {
-              data = data.metric;
-            }
-            return { data: isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, type.value) };
-          })
-        );
-      }
-    });
+          // Combine received data and its target
+          const isTable = getTargetType(type) === TargetType.Table;
+          return from(request).pipe(
+            map(data => {
+              if (data.metric) {
+                data = data.metric;
+              }
+              return { data: isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, type.value) };
+            })
+          );
+        }
+      });
     return merge(...observables);
   }
 
