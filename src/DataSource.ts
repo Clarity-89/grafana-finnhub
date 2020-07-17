@@ -1,5 +1,4 @@
 import { from, merge, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import {
   CircularDataFrame,
   DataQueryRequest,
@@ -14,7 +13,7 @@ import {
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
 import { CandleQuery, defaultQuery, MyDataSourceOptions, MyQuery, QueryParams, TargetType } from './types';
-import { ensureArray, getTargetType } from './utils';
+import { getTargetType } from './utils';
 import { candleFields } from './constants';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
@@ -53,80 +52,83 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
     const { targets, range } = options;
-
-    const observables = targets
-      .filter(target => !target.hide)
+    const visibleTargets = targets.filter(target => !target.hide);
+    const streams = visibleTargets
+      .filter(target => target.type?.value === 'trades')
       .map(target => {
         const targetWithDefaults = { ...defaultQuery, ...target };
         const query = this.constructQuery(targetWithDefaults, range as TimeRange);
-        if (target.type?.value === 'trades') {
-          return new Observable<DataQueryResponse>(subscriber => {
-            const frame = new CircularDataFrame({
-              append: 'tail',
-              capacity: 1000,
-            });
-
-            frame.refId = query.refId;
-            frame.addField({ name: 'ts', type: FieldType.time });
-            frame.addField({ name: 'value', type: FieldType.number });
-
-            const socket = new WebSocket(this.websocketUrl);
-            socket.onopen = () => socket.send(JSON.stringify({ type: 'subscribe', symbol: query.symbol }));
-            socket.onerror = (error: any) => console.log(`WebSocket error: ${JSON.stringify(error)}`);
-            socket.onclose = () => subscriber.complete();
-            socket.onmessage = (event: MessageEvent) => {
-              try {
-                const data = JSON.parse(event.data);
-                if (data.type === 'trade') {
-                  const { t, p } = data.data[0];
-                  frame.add({ ts: t, value: p });
-
-                  subscriber.next({
-                    data: [frame],
-                    key: query.refId,
-                  });
-                }
-              } catch (e) {
-                console.error(e);
-              }
-            };
-
-            return () => {
-              socket.send(JSON.stringify({ type: 'unsubscribe', symbol: query.symbol }));
-              socket.close();
-            };
+        return new Observable<DataQueryResponse>(subscriber => {
+          const frame = new CircularDataFrame({
+            append: 'tail',
+            capacity: 1000,
           });
-        } else {
-          let request;
-          const { queryText, type } = targetWithDefaults;
-          // Ignore other query params if there's a free text query
-          if (queryText) {
-            request = this.freeTextQuery(queryText);
-          } else {
-            const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
-            request = this.get(type.value, query);
-          }
 
-          // Combine received data and its target
-          const isTable = getTargetType(type) === TargetType.Table;
-          return from(request).pipe(
-            map(data => {
-              if (data.metric) {
-                data = data.metric;
+          frame.refId = query.refId;
+          frame.addField({ name: 'ts', type: FieldType.time });
+          frame.addField({ name: 'value', type: FieldType.number });
+
+          const socket = new WebSocket(this.websocketUrl);
+          socket.onopen = () => socket.send(JSON.stringify({ type: 'subscribe', symbol: query.symbol }));
+          socket.onerror = (error: any) => console.log(`WebSocket error: ${JSON.stringify(error)}`);
+          socket.onclose = () => subscriber.complete();
+          socket.onmessage = (event: MessageEvent) => {
+            try {
+              const data = JSON.parse(event.data);
+              if (data.type === 'trade') {
+                const { t, p } = data.data[0];
+                frame.add({ ts: t, value: p });
+
+                subscriber.next({
+                  data: [frame],
+                  key: query.refId,
+                });
               }
-              return { data: isTable ? this.tableResponse(ensureArray(data)) : this.tsResponse(data, type.value) };
-            })
-          );
-        }
+            } catch (e) {
+              console.error(e);
+            }
+          };
+
+          return () => {
+            socket.send(JSON.stringify({ type: 'unsubscribe', symbol: query.symbol }));
+            socket.close();
+          };
+        });
       });
-    return merge(...observables);
+    const promises = visibleTargets
+      .filter(target => target.type?.value !== 'trades')
+      .map(target => {
+        const targetWithDefaults = { ...defaultQuery, ...target };
+        let request;
+        const { queryText, type } = targetWithDefaults;
+        // Ignore other query params if there's a free text query
+        if (queryText) {
+          request = this.freeTextQuery(queryText);
+        } else {
+          const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
+          request = this.get(type.value, query);
+        }
+
+        // Combine received data and its target
+        return request.then(data => {
+          const isTable = getTargetType(type) === TargetType.Table;
+          if (data.metric) {
+            data = data.metric;
+          }
+          return isTable ? this.tableResponse(data, target) : this.tsResponse(data, type.value);
+        });
+      });
+
+    const observable = from(Promise.all(promises).then(data => ({ data: data.flat() })));
+    return merge(...streams, observable);
   }
 
-  tableResponse = (data: any[]) => {
+  tableResponse = (data: any, target: MyQuery) => {
     // Empty data frame
-    if (!data.length) {
+    if (!data) {
       return [
         new MutableDataFrame({
+          refId: target.refId,
           fields: [
             {
               name: 'no data',
@@ -141,9 +143,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       ];
     }
 
-    return data.map(d => {
-      return new MutableDataFrame({
-        fields: Object.entries(d).map(([key, val]) => ({
+    return [
+      new MutableDataFrame({
+        refId: target.refId,
+        fields: Object.entries(data).map(([key, val]) => ({
           name: key,
           type: typeof val === 'string' ? FieldType.string : FieldType.number,
           values: [val],
@@ -151,8 +154,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         meta: {
           preferredVisualisationType: 'table',
         },
-      });
-    });
+      }),
+    ];
   };
 
   // Timeseries response
