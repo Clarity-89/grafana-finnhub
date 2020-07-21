@@ -220,7 +220,21 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         ];
       }
       default:
-        return [];
+        return [
+          new MutableDataFrame({
+            refId: target.refId,
+            fields: [
+              {
+                name: 'no data',
+                type: FieldType.string,
+                values: [],
+              },
+            ],
+            meta: {
+              preferredVisualisationType: 'graph',
+            },
+          }),
+        ];
     }
   }
 
