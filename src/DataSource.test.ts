@@ -36,7 +36,7 @@ const getDs = (opts: any = {}, backendSrv = { get: () => '' }) => {
 };
 
 describe('DataSource', () => {
-  it.skip('should construct query based on params', () => {
+  it('should construct query based on params', () => {
     const ds = getDs();
     const target = { symbol: 'test' };
     const range = { to: dateTime(), from: dateTime().subtract(1, 'months'), raw: { from: 'now-1m', to: 'now' } };
@@ -49,7 +49,7 @@ describe('DataSource', () => {
     });
   });
 
-  it.skip('should call backendSrv.get with correct params', () => {
+  it('should call backendSrv.get with correct params', () => {
     const mockGet = jest.fn();
     mockGet.mockReturnValue(candleResponse);
     // @ts-ignore
@@ -61,6 +61,7 @@ describe('DataSource', () => {
       to: 1660480569,
       resolution: 'M',
       symbol: 'AAPL',
+      refId: 'A',
     });
   });
 
