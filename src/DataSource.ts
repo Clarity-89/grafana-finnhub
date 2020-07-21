@@ -123,7 +123,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     return merge(...streams, observable);
   }
 
-  tableResponse = (data: any, target: MyQuery) => {
+  tableResponse = (data: any, target: MyQuery): MutableDataFrame[] => {
     // Empty data frame
     if (!data) {
       return [
@@ -159,7 +159,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   };
 
   // Timeseries response
-  tsResponse(data: any, target: MyQuery) {
+  tsResponse(data: any, target: MyQuery): MutableDataFrame[] {
+    const { refId } = target;
     switch (target.type.value) {
       case 'earnings': {
         const excludedFields = ['symbol'];
@@ -167,7 +168,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         const keys = Object.keys(data[0]).filter(key => !excludedFields.includes(key));
         return [
           new MutableDataFrame({
-            refId: target.refId,
+            refId,
             fields: keys.map(key => ({
               type: key === timeKey ? FieldType.time : FieldType.number,
               name: key,
@@ -179,19 +180,45 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           }),
         ];
       }
-      case 'quote':
+      case 'quote': {
+        const timeKey = 't';
+        const fields = new Map([
+          ['t', 'time'],
+          ['c', 'current price'],
+        ]);
         return [
-          {
-            target: 'current price',
-            datapoints: [[data.c, data.t * 1000]],
-          },
+          new MutableDataFrame({
+            refId,
+            fields: [...fields].map(([key, label]) => ({
+              type: key === timeKey ? FieldType.time : FieldType.number,
+              name: label,
+              values: key === timeKey ? [data[key] * 1000] : [data[key]],
+            })),
+            meta: {
+              preferredVisualisationType: 'graph',
+            },
+          }),
         ];
-      case 'candle':
-        return [...candleFields].map(([field, label]) => ({
-          target: field,
-          title: label,
-          datapoints: data.t.map((time: any, i: number) => [data[field.charAt(0)][i], time * 1000]),
-        }));
+      }
+      case 'candle': {
+        const timeKey = 't';
+        return [
+          new MutableDataFrame({
+            refId,
+            fields: [...candleFields].map(([key, label]) => {
+              return {
+                type: key === timeKey ? FieldType.time : FieldType.number,
+                name: key,
+                title: label,
+                values: key === timeKey ? data[key].map((val: number) => val * 1000) : data[key],
+              };
+            }),
+            meta: {
+              preferredVisualisationType: 'graph',
+            },
+          }),
+        ];
+      }
       default:
         return [];
     }
