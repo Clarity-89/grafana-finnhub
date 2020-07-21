@@ -5,10 +5,10 @@ import {
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
+  dateTime,
   FieldType,
   MutableDataFrame,
   TimeRange,
-  TimeSeries,
 } from '@grafana/data';
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
@@ -115,7 +115,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           if (data.metric) {
             data = data.metric;
           }
-          return isTable ? this.tableResponse(data, target) : this.tsResponse(data, type.value);
+          return isTable ? this.tableResponse(data, target) : this.tsResponse(data, target);
         });
       });
 
@@ -159,17 +159,25 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   };
 
   // Timeseries response
-  tsResponse(data: any, type: string): TimeSeries[] {
-    switch (type) {
+  tsResponse(data: any, target: MyQuery) {
+    switch (target.type.value) {
       case 'earnings': {
-        const excludedFields = ['period', 'symbol'];
+        const excludedFields = ['symbol'];
+        const timeKey = 'period';
         const keys = Object.keys(data[0]).filter(key => !excludedFields.includes(key));
-        return keys.map(key => {
-          return {
-            target: key,
-            datapoints: data.map((dp: any) => [dp[key], new Date(dp.period).getTime()]),
-          };
-        });
+        return [
+          new MutableDataFrame({
+            refId: target.refId,
+            fields: keys.map(key => ({
+              type: key === timeKey ? FieldType.time : FieldType.number,
+              name: key,
+              values: data.map((dp: any) => (key === timeKey ? dateTime(dp[key]).valueOf() : dp[key])),
+            })),
+            meta: {
+              preferredVisualisationType: 'graph',
+            },
+          }),
+        ];
       }
       case 'quote':
         return [
