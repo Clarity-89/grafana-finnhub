@@ -1,7 +1,7 @@
-import moment from 'moment';
 import { DataSource } from './DataSource';
-import { PluginType } from '@grafana/data';
-import { data, candleResponse } from './__mocks__/data';
+import { dateTime, MutableField, PluginType } from '@grafana/data';
+import { candleResponse, data } from './__mocks__/data';
+import { TargetType } from './types';
 
 const getDs = (opts: any = {}, backendSrv = { get: () => '' }) => {
   const defaults = {
@@ -21,6 +21,7 @@ const getDs = (opts: any = {}, backendSrv = { get: () => '' }) => {
           small: 'public/plugins/finnhub-datasource/img/logo.svg',
           large: 'public/plugins/finnhub-datasource/img/logo.svg',
         },
+
         build: {},
         screenshots: [],
         version: '1.0.0',
@@ -38,7 +39,7 @@ describe('DataSource', () => {
   it.skip('should construct query based on params', () => {
     const ds = getDs();
     const target = { symbol: 'test' };
-    const range = { to: moment(), from: moment().subtract(1, 'months') };
+    const range = { to: dateTime(), from: dateTime().subtract(1, 'months'), raw: { from: 'now-1m', to: 'now' } };
     expect(ds.constructQuery(target, range)).toEqual({ symbol: 'TEST' });
     expect(ds.constructQuery({ ...target, type: { value: 'candle' }, resolution: 'M' }, range)).toEqual({
       symbol: 'TEST',
@@ -67,23 +68,24 @@ describe('DataSource', () => {
     //@ts-ignore
     const ds = getDs({}, { get: () => candleResponse });
 
-    const data = ds.tsResponse(candleResponse, 'candle');
-    expect(data).toEqual([
-      {
-        datapoints: [
-          [296.24, 1577854800000],
-          [304.3, 1580533200000],
-        ],
-        target: 'open price',
-      },
-      {
-        datapoints: [
-          [309.51, 1577854800000],
-          [256.59, 1580533200000],
-        ],
-        target: 'close price',
-      },
-    ]);
+    const data = ds.tsResponse(candleResponse, {
+      type: { value: 'candle' },
+      refId: 'A',
+      format: TargetType.Timeseries,
+      metric: { value: '' },
+    });
+
+    const candleData = {
+      c: [309.51, 256.59],
+      h: [327.85, 327.22],
+      l: [292.75, 254.99],
+      o: [296.24, 304.3],
+      t: [1577854800000, 1580533200000],
+      v: [908559107, 811232864],
+    };
+    Object.entries(candleData).forEach(([key, val]) =>
+      expect(data[0].fields.find((f: MutableField) => f.name === key)?.values.toArray()).toEqual(val)
+    );
   });
 
   describe('tableResponse', () => {
@@ -100,22 +102,28 @@ describe('DataSource', () => {
     const ds = getDs({}, { get: () => candleResponse });
 
     it('should return correct data for table response', () => {
-      expect(ds.tableResponse(data)).toEqual({
-        columns: [
-          { text: 'address', type: 'string' },
-          { text: 'city', type: 'string' },
-          { text: 'country', type: 'string' },
-          { text: 'description', type: 'string' },
-          { text: 'name', type: 'string' },
-        ],
-        rows: [['1 Apple Park Way', 'CUPERTINO', 'US', 'Apple Inc. designs', 'Apple Inc']],
-      });
+      expect(
+        ds
+          .tableResponse(data, {
+            type: { value: 'profile' },
+            refId: 'A',
+            format: TargetType.Table,
+            metric: { value: '' },
+          })[0]
+          .fields[0].values.toArray()
+      ).toEqual(data);
     });
 
-    it('should not throw an error when data is empty', () => {
-      expect(ds.tableResponse([])).toEqual({});
+    it('should return empty data frame for no data', () => {
+      const field = ds.tableResponse(undefined, {
+        type: { value: 'profile' },
+        refId: 'A',
+        format: TargetType.Table,
+        metric: { value: '' },
+      })[0].fields[0];
+
+      expect(field.values.toArray()).toEqual([]);
+      expect(field.name).toEqual('no data');
     });
   });
-
-  // TODO Test that query has correct args when called with default values
 });

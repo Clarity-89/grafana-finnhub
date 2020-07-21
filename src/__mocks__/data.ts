@@ -1,4 +1,5 @@
-import moment from 'moment';
+import { dateTime } from '@grafana/data';
+import { TargetType } from '../types';
 
 export const data = {
   app: 'dashboard',
@@ -7,8 +8,8 @@ export const data = {
   panelId: 6,
   dashboardId: 46,
   range: {
-    from: moment('2012-08-14T12:36:09.485Z'),
-    to: moment('2022-08-14T12:36:09.485Z'),
+    from: dateTime('2012-08-14T12:36:09.485Z'),
+    to: dateTime('2022-08-14T12:36:09.485Z'),
     raw: {
       from: '2012-08-14T12:36:09.485Z',
       to: '2022-08-14T12:36:09.485Z',
@@ -27,6 +28,8 @@ export const data = {
       resolution: 'M',
       symbol: 'aapl',
       datasource: 'Finnhub',
+      format: TargetType.Timeseries,
+      metric: { value: '' },
     },
   ],
   maxDataPoints: 750,

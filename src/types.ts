@@ -15,7 +15,7 @@ export interface MyQuery extends DataQuery {
 export interface CandleQuery {
   symbol: string;
   count: number;
-  resolution: number;
+  resolution: number | string;
 }
 
 export const defaultQuery: Partial<MyQuery | CandleQuery> = {
