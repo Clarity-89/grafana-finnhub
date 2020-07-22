@@ -106,7 +106,11 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
               </Field>
             )}
             {type.value !== 'trades' && (
-              <Field label="Query Text" horizontal={false}>
+              <Field
+                label="Free Query Text"
+                horizontal={false}
+                description="Experimental. Will override any selected values above."
+              >
                 <Input
                   name="customQuery"
                   ref={register}
