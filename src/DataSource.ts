@@ -13,7 +13,7 @@ import {
 import { BackendSrv as BackendService } from '@grafana/runtime';
 
 import { CandleQuery, defaultQuery, MyDataSourceOptions, MyQuery, QueryParams, TargetType } from './types';
-import { getTargetType } from './utils';
+import { ensureArray, getTargetType } from './utils';
 import { candleFields } from './constants';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
@@ -177,7 +177,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       }),
     ];
 
-    if (data?.s === 'no_data') {
+    if (data?.s === 'no_data' || typeof data === 'string') {
       return emptyDf;
     }
 
@@ -240,7 +240,21 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         ];
       }
       default:
-        return emptyDf;
+        const timeKeys = ['t', 'time', 'period'];
+        return [
+          new MutableDataFrame({
+            refId,
+            fields: Object.entries(data).map(([key, value]) => {
+              return {
+                type: timeKeys.includes(key) ? FieldType.time : (typeof value as FieldType),
+                name: key,
+                values: timeKeys.includes(key)
+                  ? ensureArray(value).map((val: number) => val * 1000)
+                  : ensureArray(value),
+              };
+            }),
+          }),
+        ];
     }
   }
 
@@ -254,7 +268,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async freeTextQuery(query: string) {
     try {
-      return await this.backendSrv.get(`${this.baseUrl}/${query}&token=${this.token}`);
+      return await this.backendSrv.get(`${this.baseUrl}/${query}`, { token: this.token });
     } catch (e) {
       console.error('Error retrieving data', e);
     }
