@@ -20,7 +20,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "7.0.0"
+      "version": "7.1.0"
     },
     {
       "type": "panel",
@@ -32,12 +32,6 @@
       "type": "panel",
       "id": "stat",
       "name": "Stat",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "table",
-      "name": "Table",
       "version": ""
     },
     {
@@ -73,8 +67,8 @@
         "defaults": {
           "custom": {},
           "decimals": 2,
+          "displayName": "Price",
           "mappings": [],
-          "noValue": "No data",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -84,11 +78,7 @@
               },
               {
                 "color": "red",
-                "value": 300
-              },
-              {
-                "color": "green",
-                "value": 315
+                "value": 400
               }
             ]
           },
@@ -106,29 +96,31 @@
       "options": {
         "colorMode": "value",
         "graphMode": "area",
-        "justifyMode": "auto",
+        "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
+          "fields": "",
           "values": false
-        }
+        },
+        "textMode": "value_and_name"
       },
-      "pluginVersion": "7.1.0-pre",
+      "pluginVersion": "7.2.0-pre",
       "targets": [
         {
           "refId": "A",
           "symbol": "aapl",
           "type": {
-            "label": "Trades",
-            "value": "trades"
+            "label": "Quote",
+            "value": "quote"
           }
         }
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Trades",
+      "title": "Quote",
       "type": "stat"
     },
     {
@@ -142,6 +134,7 @@
           "custom": {
             "align": null
           },
+          "links": [],
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -159,7 +152,7 @@
         },
         "overrides": []
       },
-      "fill": 0,
+      "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
@@ -181,11 +174,8 @@
       "lines": true,
       "linewidth": 1,
       "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
       "percentage": false,
-      "pluginVersion": "7.1.0-pre",
+      "pluginVersion": "7.1.0",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -218,6 +208,25 @@
         "sort": 0,
         "value_type": "individual"
       },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "v": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "c": "Closing price",
+              "h": "High price",
+              "l": "Low price",
+              "o": "Opening price",
+              "t": "Time",
+              "v": "Traded volume"
+            }
+          }
+        }
+      ],
       "type": "graph",
       "xaxis": {
         "buckets": null,
@@ -228,7 +237,7 @@
       },
       "yaxes": [
         {
-          "$$hashKey": "object:57",
+          "$$hashKey": "object:79",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -237,7 +246,7 @@
           "show": true
         },
         {
-          "$$hashKey": "object:58",
+          "$$hashKey": "object:80",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -252,156 +261,6 @@
       }
     },
     {
-      "datasource": "${DS_FINNHUB}",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": null,
-            "displayMode": "auto"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "logo"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 165
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "shareOutstanding"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 150
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "value",
-        "fieldOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "defaults": {
-            "decimals": 2,
-            "mappings": [
-              {
-                "from": "",
-                "id": 1,
-                "operator": "",
-                "text": "",
-                "to": "",
-                "type": 1,
-                "value": ""
-              }
-            ],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                }
-              ]
-            },
-            "title": "",
-            "unit": "currencyUSD"
-          },
-          "overrides": [],
-          "values": false
-        },
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
-          "values": false
-        },
-        "showHeader": true,
-        "sortBy": []
-      },
-      "pluginVersion": "7.1.0-pre",
-      "targets": [
-        {
-          "queryType": {
-            "label": "Candle",
-            "value": "candle"
-          },
-          "refId": "A",
-          "resolution": "D",
-          "symbol": "aapl",
-          "type": {
-            "label": "Exchange",
-            "value": "exchange"
-          }
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Stock Exchange",
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "logo": true,
-              "phone": true
-            },
-            "indexByName": {
-              "country": 2,
-              "currency": 3,
-              "exchange": 4,
-              "finnhubIndustry": 5,
-              "ipo": 6,
-              "logo": 7,
-              "marketCapitalization": 8,
-              "name": 0,
-              "phone": 9,
-              "shareOutstanding": 10,
-              "ticker": 1,
-              "weburl": 11
-            },
-            "renameByName": {}
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
       "aliasColors": {
         "estimate": "blue"
       },
@@ -411,7 +270,8 @@
       "datasource": "${DS_FINNHUB}",
       "fieldConfig": {
         "defaults": {
-          "custom": {}
+          "custom": {},
+          "links": []
         },
         "overrides": []
       },
@@ -421,7 +281,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 8
       },
       "hiddenSeries": false,
       "id": 4,
@@ -437,10 +297,8 @@
       "lines": false,
       "linewidth": 1,
       "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
       "percentage": false,
+      "pluginVersion": "7.1.0",
       "pointradius": 10,
       "points": true,
       "renderer": "flot",
@@ -472,6 +330,7 @@
         "sort": 0,
         "value_type": "individual"
       },
+      "transformations": [],
       "type": "graph",
       "xaxis": {
         "buckets": null,
@@ -519,7 +378,7 @@
         "h": 17,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 15
       },
       "id": 2,
       "pageSize": null,
@@ -588,19 +447,31 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 25,
+  "schemaVersion": 26,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "2000-12-31T00:00:00.000Z",
-    "to": "2020-03-31T00:00:00.000Z"
+    "from": "now-2y",
+    "to": "now"
   },
-  "timepicker": {},
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
   "timezone": "",
   "title": "Stocks",
   "uid": "8DY63kQZk",
-  "version": 29
+  "version": 55
 }
