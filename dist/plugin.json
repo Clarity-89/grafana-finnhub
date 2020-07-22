@@ -1,0 +1,31 @@
+{
+  "type": "datasource",
+  "name": "Finnhub",
+  "id": "clarity-89-finnhub-datasource",
+  "metrics": true,
+  "streaming": true,
+
+  "info": {
+    "description": "Finnhub Data Source",
+    "author": {
+      "name": "Alex Khomenko"
+    },
+    "keywords": ["Finnhub"],
+    "logos": {
+      "small": "img/logo.png",
+      "large": "img/logo.png"
+    },
+    "links": [
+      { "name": "Website", "url": "https://github.com/Clarity-89/grafana-finnhub" },
+      { "name": "License", "url": "https://github.com/Clarity-89/grafana-finnhub/blob/master/LICENSE" }
+    ],
+    "screenshots": [],
+    "version": "0.1.0",
+    "updated": "2020-07-22"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "7.x.x",
+    "plugins": []
+  }
+}
