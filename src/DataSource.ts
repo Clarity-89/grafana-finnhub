@@ -125,7 +125,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   tableResponse = (data: any, target: MyQuery): MutableDataFrame[] => {
     // Empty data frame
-    if (!data) {
+    if (!data || data.s === 'no_data') {
       return [
         new MutableDataFrame({
           refId: target.refId,

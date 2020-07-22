@@ -10,6 +10,8 @@ export interface MyQuery extends DataQuery {
   type: SelectableValue;
   format: TargetType;
   metric: SelectableValue;
+  count?: number;
+  resolution?: number | string;
 }
 
 export interface CandleQuery {

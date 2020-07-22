@@ -12,6 +12,17 @@ type Props = ExploreQueryFieldProps<DataSource, MyQuery, MyDataSourceOptions>;
 const queryTypes = [...TIMESERIES_QUERY_TYPES, ...TABLE_QUERY_TYPES];
 const metricOptions = stockMetrics.map(metric => ({ value: metric, label: metric }));
 
+const resolutions = [
+  { value: '1', label: '1' },
+  { value: '5', label: '5' },
+  { value: '15', label: '15' },
+  { value: '30', label: '30' },
+  { value: '60', label: '60' },
+  { value: 'D', label: 'Day' },
+  { value: 'W', label: 'Week' },
+  { value: 'M', label: 'Month' },
+];
+
 export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -39,6 +50,10 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     onChange({ ...query, metric: item });
   };
 
+  const onResolutionChange = (resolution: SelectableValue) => {
+    onChange({ ...query, resolution: resolution.value });
+  };
+
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       onRunQuery();
@@ -57,18 +72,6 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
       {({ register, errors }) => {
         return (
           <>
-            {type.value !== 'trades' && (
-              <Field label="Query Text" horizontal={false}>
-                <Input
-                  name="customQuery"
-                  ref={register}
-                  value={queryText || ''}
-                  onChange={onQueryTextChange}
-                  onKeyDown={onKeyDown}
-                  placeholder="Custom query e.g. 'earnings?symbol=AAPL'"
-                />
-              </Field>
-            )}
             <Field label="Data type">
               <Select
                 data-testid="Data type"
@@ -93,19 +96,25 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
 
             {type.value === 'candle' && (
               <Field label="Resolution">
-                <Input
-                  name="resolution"
-                  placeholder="Available values: 1, 5, 15, 30, 60, D, W, M"
-                  ref={register}
-                  value={resolution}
-                  onChange={onValueChange}
-                />
+                <Select onChange={onResolutionChange} options={resolutions} value={resolution} />
               </Field>
             )}
 
             {type.value === 'metric' && (
               <Field label="Metric">
                 <Select onChange={onMetricChange} options={metricOptions} value={metric} defaultValue={metric} />
+              </Field>
+            )}
+            {type.value !== 'trades' && (
+              <Field label="Query Text" horizontal={false}>
+                <Input
+                  name="customQuery"
+                  ref={register}
+                  value={queryText || ''}
+                  onChange={onQueryTextChange}
+                  onKeyDown={onKeyDown}
+                  placeholder="Custom query e.g. 'earnings?symbol=AAPL'"
+                />
               </Field>
             )}
           </>
