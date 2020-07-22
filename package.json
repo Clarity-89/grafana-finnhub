@@ -6,7 +6,8 @@
     "build": "grafana-toolkit plugin:build",
     "test": "grafana-toolkit plugin:test --watch",
     "dev": "grafana-toolkit plugin:dev",
-    "watch": "grafana-toolkit plugin:dev --watch"
+    "watch": "grafana-toolkit plugin:dev --watch",
+    "cleaninstall": "rm -rf node_modules && rm -rf yarn.lock && yarn install"
   },
   "author": "Grafana Labs",
   "license": "Apache-2.0",
@@ -14,7 +15,7 @@
     "@grafana/data": "latest",
     "@grafana/runtime": "latest",
     "@grafana/toolkit": "latest",
-    "@grafana/ui": "latest",
+    "@grafana/ui": "7.0.6",
     "@testing-library/jest-dom": "^5.1.1",
     "@testing-library/react": "^9.5.0",
     "@types/lodash": "^4.14.155",
