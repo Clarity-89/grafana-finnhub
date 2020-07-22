@@ -161,6 +161,26 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   // Timeseries response
   tsResponse(data: any, target: MyQuery): MutableDataFrame[] {
     const { refId } = target;
+    const emptyDf = [
+      new MutableDataFrame({
+        refId,
+        fields: [
+          {
+            name: 'no data',
+            type: FieldType.string,
+            values: [],
+          },
+        ],
+        meta: {
+          preferredVisualisationType: 'graph',
+        },
+      }),
+    ];
+
+    if (data?.s === 'no_data') {
+      return emptyDf;
+    }
+
     switch (target.type.value) {
       case 'earnings': {
         const excludedFields = ['symbol'];
@@ -195,7 +215,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
               values: key === timeKey ? [data[key] * 1000] : [data[key]],
             })),
             meta: {
-              preferredVisualisationType: 'graph',
+              preferredVisualisationType: 'table',
             },
           }),
         ];
@@ -220,21 +240,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         ];
       }
       default:
-        return [
-          new MutableDataFrame({
-            refId: target.refId,
-            fields: [
-              {
-                name: 'no data',
-                type: FieldType.string,
-                values: [],
-              },
-            ],
-            meta: {
-              preferredVisualisationType: 'graph',
-            },
-          }),
-        ];
+        return emptyDf;
     }
   }
 
