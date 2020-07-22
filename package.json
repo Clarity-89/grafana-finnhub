@@ -1,7 +1,7 @@
 {
-  "name": "simple-datasource",
-  "version": "1.0.0",
-  "description": "Example of a Grafana Data Source",
+  "name": "clarity-89-finnhub-datasource",
+  "version": "0.1.2",
+  "description": "Datasource plugin for Finnhub",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
     "test": "grafana-toolkit plugin:test --watch",
@@ -9,12 +9,16 @@
     "watch": "grafana-toolkit plugin:dev --watch",
     "cleaninstall": "rm -rf node_modules && rm -rf yarn.lock && yarn install"
   },
-  "author": "Grafana Labs",
+  "author": "Alex Khomenko",
   "license": "Apache-2.0",
+  "repository": "https://github.com/Clarity-89/grafana-finnhub",
+  "bugs": {
+    "url": "https://github.com/Clarity-89/grafana-finnhub/issues"
+  },
   "devDependencies": {
-    "@grafana/data": "latest",
-    "@grafana/runtime": "latest",
-    "@grafana/toolkit": "latest",
+    "@grafana/data": "7.1.0",
+    "@grafana/runtime": "7.1.0",
+    "@grafana/toolkit": "7.1.0",
     "@grafana/ui": "7.0.6",
     "@testing-library/jest-dom": "^5.1.1",
     "@testing-library/react": "^9.5.0",
