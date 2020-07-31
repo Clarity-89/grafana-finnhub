@@ -1,7 +1,7 @@
 {
   "type": "datasource",
   "name": "Finnhub",
-  "id": "clarity-89-finnhub-datasource",
+  "id": "alexkhomenko-finnhub-datasource",
   "metrics": true,
   "streaming": true,
 
@@ -25,7 +25,7 @@
   },
 
   "dependencies": {
-    "grafanaVersion": "7.x.x",
+    "grafanaDependency": "7.x.x",
     "plugins": []
   }
 }
