@@ -1,7 +1,7 @@
 {
   "type": "datasource",
   "name": "Finnhub",
-  "id": "alexkhomenko-finnhub-datasource",
+  "id": "clarity89-finnhub-datasource",
   "metrics": true,
   "streaming": true,
 
