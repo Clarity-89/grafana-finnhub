@@ -19,7 +19,7 @@
     "@grafana/data": "7.1.0",
     "@grafana/runtime": "7.1.0",
     "@grafana/toolkit": "7.1.0",
-    "@grafana/ui": "7.0.6",
+    "@grafana/ui": "latest",
     "@testing-library/jest-dom": "^5.1.1",
     "@testing-library/react": "^9.5.0",
     "@types/lodash": "^4.14.155",
