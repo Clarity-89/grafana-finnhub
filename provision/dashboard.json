@@ -5,14 +5,14 @@
       "label": "Finnhub",
       "description": "",
       "type": "datasource",
-      "pluginId": "finnhub-datasource",
+      "pluginId": "clarity89-finnhub-datasource",
       "pluginName": "Finnhub"
     }
   ],
   "__requires": [
     {
       "type": "datasource",
-      "id": "finnhub-datasource",
+      "id": "clarity89-finnhub-datasource",
       "name": "Finnhub",
       "version": "0.0.1"
     },
