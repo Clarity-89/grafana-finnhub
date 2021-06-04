@@ -10,7 +10,7 @@ import { getTargetType } from '../utils';
 type Props = ExploreQueryFieldProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 const queryTypes = [...TIMESERIES_QUERY_TYPES, ...TABLE_QUERY_TYPES];
-const metricOptions = stockMetrics.map(metric => ({ value: metric, label: metric }));
+const metricOptions = stockMetrics.map((metric) => ({ value: metric, label: metric }));
 
 const resolutions = [
   { value: '1', label: '1' },
@@ -60,7 +60,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
     }
   };
 
-  const dataTypes = queryTypes.map(type => ({
+  const dataTypes = queryTypes.map((type) => ({
     label: capitalize(type).replace(/\d+/g, ''), // Remove numbers from labels
     value: type,
   }));
@@ -84,8 +84,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
             {type.value !== 'exchange' && (
               <Field label="Symbol">
                 <Input
-                  name="symbol"
-                  ref={register}
+                  {...register('symbol')}
                   value={symbol}
                   onChange={onValueChange}
                   onKeyDown={onKeyDown}
@@ -112,8 +111,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
                 description="Experimental. Will override any selected values above."
               >
                 <Input
-                  name="customQuery"
-                  ref={register}
+                  {...register('customQuery')}
                   value={queryText || ''}
                   onChange={onQueryTextChange}
                   onKeyDown={onKeyDown}

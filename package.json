@@ -16,14 +16,15 @@
     "url": "https://github.com/Clarity-89/grafana-finnhub/issues"
   },
   "devDependencies": {
-    "@grafana/data": "7.1.0",
-    "@grafana/runtime": "7.1.0",
-    "@grafana/toolkit": "7.1.0",
-    "@grafana/ui": "latest",
+    "@grafana/data": "next",
+    "@grafana/runtime": "next",
+    "@grafana/toolkit": "next",
+    "@grafana/ui": "next",
     "@testing-library/jest-dom": "^5.1.1",
     "@testing-library/react": "^9.5.0",
     "@types/lodash": "^4.14.155",
-    "mutationobserver-shim": "^0.3.3"
+    "mutationobserver-shim": "^0.3.3",
+    "tslib": "^2.2.0"
   },
   "resolutions": {
     "axios": "^0.21.1",
