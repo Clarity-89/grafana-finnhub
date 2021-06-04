@@ -42,6 +42,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       }
       case 'metric':
         return { symbol, metric: target?.metric?.value, refId };
+      case 'social-sentiment':
+        return { symbol, from: range.from.format('YYYY-MM-DD'), to: range.to.format('YYYY-MM-DD'), refId };
       default:
         return {
           symbol,
@@ -52,13 +54,13 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
     const { targets, range } = options;
-    const visibleTargets = targets.filter(target => !target.hide);
+    const visibleTargets = targets.filter((target) => !target.hide);
     const streams = visibleTargets
-      .filter(target => target.type?.value === 'trades')
-      .map(target => {
+      .filter((target) => target.type?.value === 'trades')
+      .map((target) => {
         const targetWithDefaults = { ...defaultQuery, ...target };
         const query = this.constructQuery(targetWithDefaults, range as TimeRange);
-        return new Observable<DataQueryResponse>(subscriber => {
+        return new Observable<DataQueryResponse>((subscriber) => {
           const frame = new CircularDataFrame({
             append: 'tail',
             capacity: 1000,
@@ -96,8 +98,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         });
       });
     const promises = visibleTargets
-      .filter(target => target.type?.value !== 'trades')
-      .map(target => {
+      .filter((target) => target.type?.value !== 'trades')
+      .map((target) => {
         const targetWithDefaults = { ...defaultQuery, ...target };
         let request;
         const { queryText, type } = targetWithDefaults;
@@ -110,7 +112,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         }
 
         // Combine received data and its target
-        return request.then(data => {
+        return request.then((data) => {
           const isTable = getTargetType(type) === TargetType.Table;
           if (data.metric) {
             data = data.metric;
@@ -119,7 +121,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         });
       });
 
-    const observable = from(Promise.all(promises).then(data => ({ data: data.flat() })));
+    const observable = from(Promise.all(promises).then((data) => ({ data: data.flat() })));
     return merge(...streams, observable);
   }
 
@@ -185,11 +187,11 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       case 'earnings': {
         const excludedFields = ['symbol'];
         const timeKey = 'period';
-        const keys = Object.keys(data[0]).filter(key => !excludedFields.includes(key));
+        const keys = Object.keys(data[0]).filter((key) => !excludedFields.includes(key));
         return [
           new MutableDataFrame({
             refId,
-            fields: keys.map(key => ({
+            fields: keys.map((key) => ({
               type: key === timeKey ? FieldType.time : FieldType.number,
               name: key,
               values: data.map((dp: any) => (key === timeKey ? dateTime(dp[key]).valueOf() : dp[key])),
@@ -239,6 +241,27 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           }),
         ];
       }
+      case 'social-sentiment':
+        const timeKey = 'atTime';
+        const networks = Object.keys(data).filter((key) => key !== 'symbol' && !!data[key].length);
+        return networks.map((network) => {
+          const networkData = data[network];
+          const keys = Object.keys(networkData[0]);
+          const collectedData = Object.fromEntries(keys.map((key) => [key, networkData.map((d: any) => d[key])]));
+          return new MutableDataFrame({
+            refId,
+            fields: keys.map((key) => ({
+              type: key === timeKey ? FieldType.time : FieldType.number,
+              name: `${key}-${network}`,
+              values: collectedData[key].map((val: any) => {
+                return key === timeKey ? dateTime(val).valueOf() : val;
+              }),
+            })),
+            meta: {
+              preferredVisualisationType: 'graph',
+            },
+          });
+        });
       default:
         const timeKeys = ['t', 'time', 'period'];
         return [
