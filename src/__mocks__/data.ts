@@ -1,7 +1,7 @@
-import { dateTime } from '@grafana/data';
-import { TargetType } from '../types';
+import { DataQueryRequest, dateTime } from '@grafana/data';
+import { MyQuery, TargetType } from '../types';
 
-export const data = {
+export const data: DataQueryRequest<MyQuery> = {
   app: 'dashboard',
   requestId: 'Q101',
   timezone: '',
@@ -20,16 +20,13 @@ export const data = {
   intervalMs: 86400000,
   targets: [
     {
-      type: {
-        label: 'Candle',
-        value: 'candle',
-      },
       refId: 'A',
       resolution: 'M',
-      symbol: 'aapl',
+      symbol: 'AAPL',
       datasource: { uid: 'Finnhub' },
       format: TargetType.Timeseries,
-      metric: { value: '' },
+      type: { value: 'profile2', label: 'Profile' },
+      metric: { value: 'test', label: 'test' },
     },
   ],
   maxDataPoints: 750,
