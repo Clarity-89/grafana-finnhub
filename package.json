@@ -1,6 +1,6 @@
 {
   "name": "clarity-89-finnhub-datasource",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Datasource plugin for Finnhub",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
