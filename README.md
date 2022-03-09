@@ -9,5 +9,6 @@ Before starting, it's necessary to get an API token from [Finnhub](https://finnh
 - [Stock candles](https://finnhub.io/docs/api#stock-candles)
 - [Basic Financials](https://finnhub.io/docs/api#company-basic-financials)
 - [Trades](https://finnhub.io/docs/api#websocket-trades) (Websocket)
+- [Social Sentiment](https://finnhub.io/docs/api/social-sentiment)
  
 A sample dashboard provisioning file is available at `provision/dashboard.json`. [Read more](https://grafana.com/tutorials/provision-dashboards-and-data-sources) about dashboards provisioning. 

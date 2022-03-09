@@ -1,6 +1,5 @@
 import React, { FC, ChangeEvent } from 'react';
 import { Field, Input } from '@grafana/ui';
-import {} from '@emotion/core';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { MyDataSourceOptions } from '../types';
 

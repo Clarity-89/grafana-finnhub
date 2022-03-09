@@ -55,11 +55,8 @@ describe('DataSource', () => {
     // @ts-ignore
     const ds = getDs({}, { get: mockGet });
     ds.query(data);
-    expect(mockGet).toBeCalledWith(`${ds.baseUrl}/stock/candle`, {
+    expect(mockGet).toBeCalledWith(`${ds.baseUrl}/stock/profile2`, {
       token: ds.token,
-      from: 1344947769,
-      to: 1660480569,
-      resolution: 'M',
       symbol: 'AAPL',
       refId: 'A',
     });
