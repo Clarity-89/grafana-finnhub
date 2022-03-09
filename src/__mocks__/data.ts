@@ -27,7 +27,7 @@ export const data = {
       refId: 'A',
       resolution: 'M',
       symbol: 'aapl',
-      datasource: 'Finnhub',
+      datasource: { uid: 'Finnhub' },
       format: TargetType.Timeseries,
       metric: { value: '' },
     },

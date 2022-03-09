@@ -28,7 +28,8 @@
   },
   "resolutions": {
     "axios": "^0.21.1",
-    "node-notifier": "^8.0.1"
+    "node-notifier": "^8.0.1",
+    "rxjs": "^7.5.1"
   },
   "dependencies": {
     "@types/lodash.capitalize": "^4.2.6",
@@ -37,6 +38,6 @@
     "lodash.capitalize": "^4.2.1",
     "moment": "^2.24.0",
     "plop": "^2.6.0",
-    "rxjs": "^6.5.5"
+    "rxjs": "^7.5.1"
   }
 }

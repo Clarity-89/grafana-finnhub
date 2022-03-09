@@ -1399,7 +1399,6 @@ var QueryEditor = function QueryEditor(_a) {
       resolution = _b.resolution,
       metric = _b.metric;
 
-  console.log('test');
   return react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Form"], {
     onSubmit: onRunQuery
   }, function (_a) {
@@ -1415,12 +1414,13 @@ var QueryEditor = function QueryEditor(_a) {
       defaultValue: type
     })), type.value !== 'exchange' && react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Field"], {
       label: "Symbol"
-    }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Input"], Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])({}, register('symbol'), {
+    }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Input"], {
       value: symbol,
       onChange: onValueChange,
       onKeyDown: onKeyDown,
-      placeholder: "Stock symbol"
-    }))), type.value === 'candle' && react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Field"], {
+      placeholder: "Stock symbol",
+      defaultValue: ''
+    })), type.value === 'candle' && react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Field"], {
       label: "Resolution"
     }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Select"], {
       onChange: onResolutionChange,
@@ -1437,12 +1437,12 @@ var QueryEditor = function QueryEditor(_a) {
       label: "Free Query Text",
       horizontal: false,
       description: "Experimental. Will override any selected values above."
-    }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Input"], Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])({}, register('customQuery'), {
+    }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Input"], {
       value: queryText || '',
       onChange: onQueryTextChange,
       onKeyDown: onKeyDown,
       placeholder: "Custom query e.g. 'earnings?symbol=AAPL'"
-    }))));
+    })));
   });
 };
 

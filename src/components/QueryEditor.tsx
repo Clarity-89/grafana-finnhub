@@ -66,7 +66,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   }));
 
   const { queryText, symbol, type, resolution, metric } = { ...defaultQuery, ...query };
-  console.log('test');
+
   return (
     <Form onSubmit={onRunQuery}>
       {({ register, errors }) => {
@@ -84,11 +84,11 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
             {type.value !== 'exchange' && (
               <Field label="Symbol">
                 <Input
-                  {...register('symbol')}
                   value={symbol}
                   onChange={onValueChange}
                   onKeyDown={onKeyDown}
                   placeholder="Stock symbol"
+                  defaultValue={''}
                 />
               </Field>
             )}
@@ -111,7 +111,6 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
                 description="Experimental. Will override any selected values above."
               >
                 <Input
-                  {...register('customQuery')}
                   value={queryText || ''}
                   onChange={onQueryTextChange}
                   onKeyDown={onKeyDown}
