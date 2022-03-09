@@ -424,7 +424,7 @@ module.exports = capitalize;
 /*!******************************************!*\
   !*** ../node_modules/tslib/tslib.es6.js ***!
   \******************************************/
-/*! exports provided: __extends, __assign, __rest, __decorate, __param, __metadata, __awaiter, __generator, __createBinding, __exportStar, __values, __read, __spread, __spreadArrays, __await, __asyncGenerator, __asyncDelegator, __asyncValues, __makeTemplateObject, __importStar, __importDefault, __classPrivateFieldGet, __classPrivateFieldSet */
+/*! exports provided: __extends, __assign, __rest, __decorate, __param, __metadata, __awaiter, __generator, __createBinding, __exportStar, __values, __read, __spread, __spreadArrays, __spreadArray, __await, __asyncGenerator, __asyncDelegator, __asyncValues, __makeTemplateObject, __importStar, __importDefault, __classPrivateFieldGet, __classPrivateFieldSet */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -443,6 +443,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__read", function() { return __read; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__spread", function() { return __spread; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__spreadArrays", function() { return __spreadArrays; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__spreadArray", function() { return __spreadArray; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__await", function() { return __await; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__asyncGenerator", function() { return __asyncGenerator; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__asyncDelegator", function() { return __asyncDelegator; });
@@ -471,11 +472,13 @@ PERFORMANCE OF THIS SOFTWARE.
 var extendStatics = function(d, b) {
     extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
     return extendStatics(d, b);
 };
 
 function __extends(d, b) {
+    if (typeof b !== "function" && b !== null)
+        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
     extendStatics(d, b);
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -557,13 +560,16 @@ function __generator(thisArg, body) {
     }
 }
 
-function __createBinding(o, m, k, k2) {
+var __createBinding = Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
-}
+});
 
-function __exportStar(m, exports) {
-    for (var p in m) if (p !== "default" && !exports.hasOwnProperty(p)) exports[p] = m[p];
+function __exportStar(m, o) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p)) __createBinding(o, m, p);
 }
 
 function __values(o) {
@@ -595,19 +601,31 @@ function __read(o, n) {
     return ar;
 }
 
+/** @deprecated */
 function __spread() {
     for (var ar = [], i = 0; i < arguments.length; i++)
         ar = ar.concat(__read(arguments[i]));
     return ar;
 }
 
+/** @deprecated */
 function __spreadArrays() {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
     for (var r = Array(s), k = 0, i = 0; i < il; i++)
         for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
             r[k] = a[j];
     return r;
-};
+}
+
+function __spreadArray(to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+}
 
 function __await(v) {
     return this instanceof __await ? (this.v = v, this) : new __await(v);
@@ -644,11 +662,17 @@ function __makeTemplateObject(cooked, raw) {
     return cooked;
 };
 
+var __setModuleDefault = Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+};
+
 function __importStar(mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result.default = mod;
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
     return result;
 }
 
@@ -656,19 +680,17 @@ function __importDefault(mod) {
     return (mod && mod.__esModule) ? mod : { default: mod };
 }
 
-function __classPrivateFieldGet(receiver, privateMap) {
-    if (!privateMap.has(receiver)) {
-        throw new TypeError("attempted to get private field on non-instance");
-    }
-    return privateMap.get(receiver);
+function __classPrivateFieldGet(receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 }
 
-function __classPrivateFieldSet(receiver, privateMap, value) {
-    if (!privateMap.has(receiver)) {
-        throw new TypeError("attempted to set private field on non-instance");
-    }
-    privateMap.set(receiver, value);
-    return value;
+function __classPrivateFieldSet(receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 }
 
 
@@ -723,7 +745,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./types */ "./types.ts");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utils */ "./utils.ts");
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants */ "./constants.ts");
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 
 
 
@@ -812,6 +834,14 @@ function (_super) {
         return {
           symbol: symbol,
           metric: (_c = target === null || target === void 0 ? void 0 : target.metric) === null || _c === void 0 ? void 0 : _c.value,
+          refId: refId
+        };
+
+      case 'social-sentiment':
+        return {
+          symbol: symbol,
+          from: range.from.format('YYYY-MM-DD'),
+          to: range.to.format('YYYY-MM-DD'),
           refId: refId
         };
 
@@ -937,7 +967,7 @@ function (_super) {
         data: data.flat()
       };
     }));
-    return rxjs__WEBPACK_IMPORTED_MODULE_1__["merge"].apply(void 0, Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spread"])(streams, [observable]));
+    return rxjs__WEBPACK_IMPORTED_MODULE_1__["merge"].apply(void 0, Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spreadArray"])(Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spreadArray"])([], Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(streams), false), [observable], false));
   }; // Timeseries response
 
 
@@ -990,7 +1020,7 @@ function (_super) {
           var fields = new Map([['t', 'time'], ['c', 'current price']]);
           return [new _grafana_data__WEBPACK_IMPORTED_MODULE_2__["MutableDataFrame"]({
             refId: refId,
-            fields: Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spread"])(fields).map(function (_a) {
+            fields: Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spreadArray"])([], Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(fields), false).map(function (_a) {
               var _b = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(_a, 2),
                   key = _b[0],
                   label = _b[1];
@@ -1012,7 +1042,7 @@ function (_super) {
           var timeKey_3 = 't';
           return [new _grafana_data__WEBPACK_IMPORTED_MODULE_2__["MutableDataFrame"]({
             refId: refId,
-            fields: Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spread"])(_constants__WEBPACK_IMPORTED_MODULE_5__["candleFields"]).map(function (_a) {
+            fields: Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spreadArray"])([], Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(_constants__WEBPACK_IMPORTED_MODULE_5__["candleFields"]), false).map(function (_a) {
               var _b = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(_a, 2),
                   key = _b[0],
                   label = _b[1];
@@ -1031,6 +1061,36 @@ function (_super) {
             }
           })];
         }
+
+      case 'social-sentiment':
+        var timeKey_4 = 'atTime';
+        var networks = Object.keys(data).filter(function (key) {
+          return key !== 'symbol' && !!data[key].length;
+        });
+        return networks.map(function (network) {
+          var networkData = data[network];
+          var keys = Object.keys(networkData[0]);
+          var collectedData = Object.fromEntries(keys.map(function (key) {
+            return [key, networkData.map(function (d) {
+              return d[key];
+            })];
+          }));
+          return new _grafana_data__WEBPACK_IMPORTED_MODULE_2__["MutableDataFrame"]({
+            refId: refId,
+            fields: keys.map(function (key) {
+              return {
+                type: key === timeKey_4 ? _grafana_data__WEBPACK_IMPORTED_MODULE_2__["FieldType"].time : _grafana_data__WEBPACK_IMPORTED_MODULE_2__["FieldType"].number,
+                name: key + "-" + network,
+                values: collectedData[key].map(function (val) {
+                  return key === timeKey_4 ? Object(_grafana_data__WEBPACK_IMPORTED_MODULE_2__["dateTime"])(val).valueOf() : val;
+                })
+              };
+            }),
+            meta: {
+              preferredVisualisationType: 'graph'
+            }
+          });
+        });
 
       default:
         var timeKeys_1 = ['t', 'time', 'period'];
@@ -1061,7 +1121,7 @@ function (_super) {
           case 0:
             return [4
             /*yield*/
-            , this.get('profile', {
+            , this.get('profile2', {
               symbol: 'AAPL'
             })];
 
@@ -1239,7 +1299,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var queryTypes = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spread"])(_constants__WEBPACK_IMPORTED_MODULE_5__["TIMESERIES_QUERY_TYPES"], _constants__WEBPACK_IMPORTED_MODULE_5__["TABLE_QUERY_TYPES"]);
+var queryTypes = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spreadArray"])(Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__spreadArray"])([], Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(_constants__WEBPACK_IMPORTED_MODULE_5__["TIMESERIES_QUERY_TYPES"]), false), Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__read"])(_constants__WEBPACK_IMPORTED_MODULE_5__["TABLE_QUERY_TYPES"]), false);
 
 var metricOptions = _constants__WEBPACK_IMPORTED_MODULE_5__["stockMetrics"].map(function (metric) {
   return {
@@ -1339,6 +1399,7 @@ var QueryEditor = function QueryEditor(_a) {
       resolution = _b.resolution,
       metric = _b.metric;
 
+  console.log('test');
   return react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Form"], {
     onSubmit: onRunQuery
   }, function (_a) {
@@ -1354,14 +1415,12 @@ var QueryEditor = function QueryEditor(_a) {
       defaultValue: type
     })), type.value !== 'exchange' && react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Field"], {
       label: "Symbol"
-    }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Input"], {
-      name: "symbol",
-      ref: register,
+    }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Input"], Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])({}, register('symbol'), {
       value: symbol,
       onChange: onValueChange,
       onKeyDown: onKeyDown,
       placeholder: "Stock symbol"
-    })), type.value === 'candle' && react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Field"], {
+    }))), type.value === 'candle' && react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Field"], {
       label: "Resolution"
     }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Select"], {
       onChange: onResolutionChange,
@@ -1378,14 +1437,12 @@ var QueryEditor = function QueryEditor(_a) {
       label: "Free Query Text",
       horizontal: false,
       description: "Experimental. Will override any selected values above."
-    }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Input"], {
-      name: "customQuery",
-      ref: register,
+    }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Input"], Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])({}, register('customQuery'), {
       value: queryText || '',
       onChange: onQueryTextChange,
       onKeyDown: onKeyDown,
       placeholder: "Custom query e.g. 'earnings?symbol=AAPL'"
-    })));
+    }))));
   });
 };
 
@@ -1424,7 +1481,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TABLE_QUERY_TYPES", function() { return TABLE_QUERY_TYPES; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stockMetrics", function() { return stockMetrics; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "candleFields", function() { return candleFields; });
-var TIMESERIES_QUERY_TYPES = ['quote', 'earnings', 'candle', 'trades'];
+var TIMESERIES_QUERY_TYPES = ['quote', 'earnings', 'candle', 'trades', 'social-sentiment'];
 var TABLE_QUERY_TYPES = ['profile2', 'metric'];
 var stockMetrics = ['price', 'valuation', 'growth', 'margin', 'management', 'financialStrength', 'perShare'];
 var candleFields = new Map([['o', 'Opening price'], ['h', 'High price'], ['l', 'Low price'], ['c', 'Closing price'], ['v', 'Traded volume'], ['t', 'Time']]);

@@ -282,7 +282,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async testDatasource() {
-    const resp = await this.get('profile', { symbol: 'AAPL' });
+    const resp = await this.get('profile2', { symbol: 'AAPL' });
     if (resp.status === 200) {
       return { status: 'success' };
     }

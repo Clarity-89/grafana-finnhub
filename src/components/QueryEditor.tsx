@@ -66,7 +66,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   }));
 
   const { queryText, symbol, type, resolution, metric } = { ...defaultQuery, ...query };
-
+  console.log('test');
   return (
     <Form onSubmit={onRunQuery}>
       {({ register, errors }) => {
