@@ -42,11 +42,12 @@
       ]
     },
     {
-      "path": "websocket",
-      "url": "wss://ws.finnhub.io",
-      "headers": [
+      "path": "ws",
+      "url": "https://ws.finnhub.io",
+      "method": "*",
+      "urlParams": [
         {
-          "name": "X-Finnhub-Token",
+          "name": "token",
           "content": "{{ .SecureJsonData.apiToken }}"
         }
       ]

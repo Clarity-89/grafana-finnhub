@@ -882,15 +882,6 @@ function (_super) {
           name: 'value',
           type: _grafana_data__WEBPACK_IMPORTED_MODULE_2__["FieldType"].number
         });
-        var url = _this.url + "/websocket";
-        console.log('url', url);
-
-        _this.backendSrv.get("" + url).then(function (r) {
-          return console.log('socket r', r);
-        })["catch"](function (e) {
-          return console.error('Error retrieving data', e);
-        });
-
         var socket = new WebSocket(_this.websocketUrl);
 
         socket.onopen = function () {
