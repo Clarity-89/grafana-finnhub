@@ -18,18 +18,15 @@ import { candleFields } from './constants';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
-  token: string;
-  baseUrl: string;
+  url?: string;
   websocketUrl: string;
 
   /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendService) {
     super(instanceSettings);
     this.dataSourceName = instanceSettings.name;
-    const config = instanceSettings.jsonData;
-    this.token = config.apiToken;
-    this.baseUrl = `https://finnhub.io/api/v1`;
-    this.websocketUrl = `wss://ws.finnhub.io?token=${this.token}`;
+    this.url = instanceSettings.url;
+    this.websocketUrl = `wss://ws.finnhub.io`;
   }
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
@@ -291,19 +288,16 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async freeTextQuery(query: string) {
     try {
-      return await this.backendSrv.get(`${this.baseUrl}/${query}`, { token: this.token });
+      return await this.backendSrv.get(`${this.url}/api/${query}`);
     } catch (e) {
       console.error('Error retrieving data', e);
     }
   }
 
   async get(dataType: string, params: QueryParams = {}) {
-    const url = `${this.baseUrl}${dataType === 'quote' ? '' : '/stock'}`;
+    const url = `${this.url}/api${dataType === 'quote' ? '' : '/stock'}`;
     try {
-      return await this.backendSrv.get(`${url}/${dataType}`, {
-        ...params,
-        token: this.token,
-      });
+      return await this.backendSrv.get(`${url}/${dataType}`, params);
     } catch (e) {
       console.error('Error retrieving data', e);
       throw e;

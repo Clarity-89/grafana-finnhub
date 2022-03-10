@@ -1,25 +1,25 @@
 import React, { FC, ChangeEvent } from 'react';
 import { Field, Input } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
-import { MyDataSourceOptions } from '../types';
+import { MyDataSourceOptions, SecureJsonData } from '../types';
 
-interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions> {}
+interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions, SecureJsonData> {}
 
 export const ConfigEditor: FC<Props> = ({ options, onOptionsChange }) => {
   const onAPIKeyChange = (event: ChangeEvent<HTMLInputElement>) => {
     onOptionsChange({
       ...options,
-      jsonData: {
+      secureJsonData: {
         apiToken: event.target.value,
       },
     });
   };
 
-  const { jsonData } = options;
+  const { secureJsonData } = options;
 
   return (
     <Field label="API Token">
-      <Input value={jsonData.apiToken || ''} placeholder="Token for the Finnhub API" onChange={onAPIKeyChange} />
+      <Input value={secureJsonData?.apiToken || ''} placeholder="Token for the Finnhub API" onChange={onAPIKeyChange} />
     </Field>
   );
 };

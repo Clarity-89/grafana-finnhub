@@ -34,7 +34,10 @@ export const defaultQuery: Partial<MyQuery | CandleQuery> = {
  */
 export interface MyDataSourceOptions extends DataSourceJsonData {
   path?: string;
-  apiToken: string;
+}
+
+export interface SecureJsonData {
+  apiToken?: string;
 }
 
 export interface QueryParams {
