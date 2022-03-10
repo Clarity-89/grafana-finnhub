@@ -1,11 +1,14 @@
 import React, { FC, ChangeEvent } from 'react';
-import { Field, Input } from '@grafana/ui';
+import { Button, InlineField, InlineFieldRow, Input } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { MyDataSourceOptions, SecureJsonData } from '../types';
 
 interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions, SecureJsonData> {}
 
 export const ConfigEditor: FC<Props> = ({ options, onOptionsChange }) => {
+  const { secureJsonData, secureJsonFields } = options;
+  const configured = !!secureJsonFields?.apiToken;
+
   const onAPIKeyChange = (event: ChangeEvent<HTMLInputElement>) => {
     onOptionsChange({
       ...options,
@@ -15,11 +18,36 @@ export const ConfigEditor: FC<Props> = ({ options, onOptionsChange }) => {
     });
   };
 
-  const { secureJsonData } = options;
+  const onTokenReset = () => {
+    onOptionsChange({
+      ...options,
+      secureJsonFields: {
+        ...options.secureJsonFields,
+        apiToken: false,
+      },
+      secureJsonData: {
+        ...options.secureJsonData,
+        apiToken: '',
+      },
+    });
+  };
 
   return (
-    <Field label="API Token">
-      <Input value={secureJsonData?.apiToken || ''} placeholder="Token for the Finnhub API" onChange={onAPIKeyChange} />
-    </Field>
+    <InlineFieldRow>
+      <InlineField label="API Token" disabled={configured} labelWidth={20}>
+        <Input
+          width={39.5} // Match the width of the "name" field
+          type={'password'}
+          value={secureJsonData?.apiToken || ''}
+          placeholder={configured ? 'Configured' : 'Token for the Finnhub API'}
+          onChange={onAPIKeyChange}
+        />
+      </InlineField>
+      {configured && (
+        <Button variant={'secondary'} onClick={onTokenReset}>
+          Reset
+        </Button>
+      )}
+    </InlineFieldRow>
   );
 };

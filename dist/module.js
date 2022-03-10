@@ -882,6 +882,15 @@ function (_super) {
           name: 'value',
           type: _grafana_data__WEBPACK_IMPORTED_MODULE_2__["FieldType"].number
         });
+        var url = _this.url + "/websocket";
+        console.log('url', url);
+
+        _this.backendSrv.get("" + url).then(function (r) {
+          return console.log('socket r', r);
+        })["catch"](function (e) {
+          return console.error('Error retrieving data', e);
+        });
+
         var socket = new WebSocket(_this.websocketUrl);
 
         socket.onopen = function () {
@@ -1244,6 +1253,9 @@ __webpack_require__.r(__webpack_exports__);
 var ConfigEditor = function ConfigEditor(_a) {
   var options = _a.options,
       onOptionsChange = _a.onOptionsChange;
+  var secureJsonData = options.secureJsonData,
+      secureJsonFields = options.secureJsonFields;
+  var configured = !!(secureJsonFields === null || secureJsonFields === void 0 ? void 0 : secureJsonFields.apiToken);
 
   var onAPIKeyChange = function onAPIKeyChange(event) {
     onOptionsChange(Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])(Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])({}, options), {
@@ -1253,14 +1265,31 @@ var ConfigEditor = function ConfigEditor(_a) {
     }));
   };
 
-  var secureJsonData = options.secureJsonData;
-  return react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_2__["Field"], {
-    label: "API Token"
+  var onTokenReset = function onTokenReset() {
+    onOptionsChange(Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])(Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])({}, options), {
+      secureJsonFields: Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])(Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])({}, options.secureJsonFields), {
+        apiToken: false
+      }),
+      secureJsonData: Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])(Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"])({}, options.secureJsonData), {
+        apiToken: ''
+      })
+    }));
+  };
+
+  return react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_2__["InlineFieldRow"], null, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_2__["InlineField"], {
+    label: "API Token",
+    disabled: configured,
+    labelWidth: 20
   }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_2__["Input"], {
+    width: 39.5,
+    type: 'password',
     value: (secureJsonData === null || secureJsonData === void 0 ? void 0 : secureJsonData.apiToken) || '',
-    placeholder: "Token for the Finnhub API",
+    placeholder: configured ? 'Configured' : 'Token for the Finnhub API',
     onChange: onAPIKeyChange
-  }));
+  })), configured && react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_2__["Button"], {
+    variant: 'secondary',
+    onClick: onTokenReset
+  }, "Reset"));
 };
 
 /***/ }),
@@ -1410,6 +1439,7 @@ var QueryEditor = function QueryEditor(_a) {
       label: "Symbol"
     }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_3__["Input"], {
       value: symbol,
+      name: 'symbol',
       onChange: onValueChange,
       onKeyDown: onKeyDown,
       placeholder: "Stock symbol"

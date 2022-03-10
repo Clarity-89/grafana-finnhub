@@ -40,6 +40,16 @@
           "content": "{{ .SecureJsonData.apiToken }}"
         }
       ]
+    },
+    {
+      "path": "websocket",
+      "url": "wss://ws.finnhub.io",
+      "headers": [
+        {
+          "name": "X-Finnhub-Token",
+          "content": "{{ .SecureJsonData.apiToken }}"
+        }
+      ]
     }
   ],
   "dependencies": {

@@ -83,7 +83,13 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
             </Field>
             {type.value !== 'exchange' && (
               <Field label="Symbol">
-                <Input value={symbol} onChange={onValueChange} onKeyDown={onKeyDown} placeholder="Stock symbol" />
+                <Input
+                  value={symbol}
+                  name={'symbol'}
+                  onChange={onValueChange}
+                  onKeyDown={onKeyDown}
+                  placeholder="Stock symbol"
+                />
               </Field>
             )}
 
