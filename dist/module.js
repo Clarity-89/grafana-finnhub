@@ -882,6 +882,20 @@ function (_super) {
           name: 'value',
           type: _grafana_data__WEBPACK_IMPORTED_MODULE_2__["FieldType"].number
         });
+        var url = _this.url + "/ws";
+
+        _this.backendSrv.fetch({
+          url: url,
+          method: 'GET'
+        }).subscribe({
+          error: function error(err) {
+            return console.log('err', err);
+          },
+          next: function next(value) {
+            return console.log('v', value);
+          }
+        });
+
         var socket = new WebSocket(_this.websocketUrl);
 
         socket.onopen = function () {
@@ -1270,7 +1284,12 @@ var ConfigEditor = function ConfigEditor(_a) {
   return react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_2__["InlineFieldRow"], null, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_2__["InlineField"], {
     label: "API Token",
     disabled: configured,
-    labelWidth: 20
+    labelWidth: 20,
+    tooltip: react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_1___default.a.Fragment, null, "Free API token can be created on", ' ', react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement("a", {
+      href: 'https://finnhub.io/',
+      about: 'blank',
+      rel: 'noreferrer nopenner'
+    }, "Finnhub website"))
   }, react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(_grafana_ui__WEBPACK_IMPORTED_MODULE_2__["Input"], {
     width: 39.5,
     type: 'password',

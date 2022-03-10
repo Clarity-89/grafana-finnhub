@@ -34,7 +34,19 @@ export const ConfigEditor: FC<Props> = ({ options, onOptionsChange }) => {
 
   return (
     <InlineFieldRow>
-      <InlineField label="API Token" disabled={configured} labelWidth={20}>
+      <InlineField
+        label="API Token"
+        disabled={configured}
+        labelWidth={20}
+        tooltip={
+          <>
+            Free API token can be created on{' '}
+            <a href={'https://finnhub.io/'} about={'blank'} rel={'noreferrer nopenner'}>
+              Finnhub website
+            </a>
+          </>
+        }
+      >
         <Input
           width={39.5} // Match the width of the "name" field
           type={'password'}
