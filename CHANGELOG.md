@@ -6,3 +6,7 @@
 
 - Update the plugin to be compatible with Grafana 8
 - Add social sentiment endpoint support
+
+## 0.3.0
+- Store API token in secure field
+- Temporarily disabled trades websocket endpoint due to proxy auth issue (quote query with dashboard refresh can be used as a workaround).   

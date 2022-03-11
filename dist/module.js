@@ -882,20 +882,6 @@ function (_super) {
           name: 'value',
           type: _grafana_data__WEBPACK_IMPORTED_MODULE_2__["FieldType"].number
         });
-        var url = _this.url + "/ws";
-
-        _this.backendSrv.fetch({
-          url: url,
-          method: 'GET'
-        }).subscribe({
-          error: function error(err) {
-            return console.log('err', err);
-          },
-          next: function next(value) {
-            return console.log('v', value);
-          }
-        });
-
         var socket = new WebSocket(_this.websocketUrl);
 
         socket.onopen = function () {
@@ -1514,7 +1500,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TABLE_QUERY_TYPES", function() { return TABLE_QUERY_TYPES; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stockMetrics", function() { return stockMetrics; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "candleFields", function() { return candleFields; });
-var TIMESERIES_QUERY_TYPES = ['quote', 'earnings', 'candle', 'trades', 'social-sentiment'];
+var TIMESERIES_QUERY_TYPES = ['quote', 'earnings', 'candle', 'social-sentiment'];
 var TABLE_QUERY_TYPES = ['profile2', 'metric'];
 var stockMetrics = ['price', 'valuation', 'growth', 'margin', 'management', 'financialStrength', 'perShare'];
 var candleFields = new Map([['o', 'Opening price'], ['h', 'High price'], ['l', 'Low price'], ['c', 'Closing price'], ['v', 'Traded volume'], ['t', 'Time']]);
