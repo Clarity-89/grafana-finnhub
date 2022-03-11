@@ -13,6 +13,7 @@ const getDs = (opts: any = {}, backendSrv = { get: () => '' }) => {
       id: 'finnhub-datasource',
       module: 'plugins/finnhub-datasource/module',
       baseUrl: 'public/plugins/finnhub-datasource',
+      url: 'test.example.com',
       info: {
         author: { name: 'Alex Khomenko', url: '' },
         description: 'Finnhub Data Source',
@@ -55,7 +56,7 @@ describe('DataSource', () => {
     // @ts-ignore
     const ds = getDs({}, { get: mockGet });
     ds.query(data);
-    expect(mockGet).toBeCalledWith(`${ds.url}/stock/profile2`, {
+    expect(mockGet).toBeCalledWith(`${ds.url}/api/stock/profile2`, {
       symbol: 'AAPL',
       refId: 'A',
     });
