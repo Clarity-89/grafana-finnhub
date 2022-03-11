@@ -10,23 +10,30 @@ import {
   MutableDataFrame,
   TimeRange,
 } from '@grafana/data';
+import { config } from '@grafana/runtime';
 import { BackendSrv as BackendService } from '@grafana/runtime';
-
 import { CandleQuery, defaultQuery, MyDataSourceOptions, MyQuery, QueryParams, TargetType } from './types';
 import { ensureArray, getTargetType } from './utils';
 import { candleFields } from './constants';
 
+export const convertToWebSocketUrl = (url: string) => {
+  const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+  let backend = `${protocol}${window.location.host}${config.appSubUrl}`;
+  if (backend.endsWith('/')) {
+    backend = backend.slice(0, -1);
+  }
+  return `${backend}${url}`;
+};
+
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
   url?: string;
-  websocketUrl: string;
 
   /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendService) {
     super(instanceSettings);
     this.dataSourceName = instanceSettings.name;
     this.url = instanceSettings.url;
-    this.websocketUrl = `wss://ws.finnhub.io`;
   }
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
@@ -67,7 +74,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           frame.addField({ name: 'ts', type: FieldType.time });
           frame.addField({ name: 'value', type: FieldType.number });
 
-          const socket = new WebSocket(this.websocketUrl);
+          const url = convertToWebSocketUrl(this.url + '/ws');
+          const socket = new WebSocket(url);
           socket.onopen = () => socket.send(JSON.stringify({ type: 'subscribe', symbol: query.symbol }));
           socket.onerror = (error: any) => console.log(`WebSocket error: ${JSON.stringify(error)}`);
           socket.onclose = () => subscriber.complete();
