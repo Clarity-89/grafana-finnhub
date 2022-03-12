@@ -10,8 +10,7 @@ import {
   MutableDataFrame,
   TimeRange,
 } from '@grafana/data';
-import { config } from '@grafana/runtime';
-import { BackendSrv as BackendService } from '@grafana/runtime';
+import { BackendSrv, config } from '@grafana/runtime';
 import { CandleQuery, defaultQuery, MyDataSourceOptions, MyQuery, QueryParams, TargetType } from './types';
 import { ensureArray, getTargetType } from './utils';
 import { candleFields } from './constants';
@@ -30,7 +29,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   url?: string;
 
   /** @ngInject */
-  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendService) {
+  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendSrv) {
     super(instanceSettings);
     this.dataSourceName = instanceSettings.name;
     this.url = instanceSettings.url;
