@@ -1,0 +1,37 @@
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+{
+  "manifestVersion": "2.0.0",
+  "signatureType": "community",
+  "signedByOrg": "clarity89",
+  "signedByOrgName": "clarity89",
+  "rootUrls": [],
+  "plugin": "clarity89-finnhub-datasource",
+  "version": "0.3.1",
+  "time": 1647073927660,
+  "keyId": "7e4d0c6a708866e7",
+  "files": {
+    "index.html": "2fa2c4168c5bb7b8502989f437e4a1a71e663702b0ec9c01530215c8c026dcaf",
+    "LICENSE": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+    "CHANGELOG.md": "5459cc98507bab7fe6cae3d2a8b6db77f0ac04041f2b32c8af9b57939c4ca57e",
+    "module.js.LICENSE.txt": "0d8f66cd4afb566cb5b7e1540c68f43b939d3eba12ace290f18abc4f4cb53ed0",
+    "module.js.map": "291db5c4f32cd5efb238b188085e26a4dcafa4d1b274d70f08d1febc496c3d0f",
+    "plugin.json": "93dd731e526dbd8f8ba547b63639cfb8f5ba0d44ff7e7a816b6ba7173be7315b",
+    "README.md": "3e15d3f76eaba4016d55c49c9e3f6dca8df72728a2f35fea8e8998c79e10d0a7",
+    "img/logo.png": "2fe2dd0c1308915baeb5dc12abd11ae2c535207c420d1f31fc1fac67453578d8",
+    "module.js": "b9edb475970a1cd17fc955c4134f92f6f9ce9ce1f52c5758269b0278a77aec80"
+  }
+}
+-----BEGIN PGP SIGNATURE-----
+Version: OpenPGP.js v4.10.10
+Comment: https://openpgpjs.org
+
+wrgEARMKAAYFAmIsWocAIQkQfk0ManCIZucWIQTzOyW2kQdOhGNlcPN+TQxq
+cIhm56yMAgjDfSXXaKhjSderRufIYemUN67vEEIg0ToFFbmsajVHmN6PQ1RY
+hxgbOi9c3Dd0tsDhU00R5DEWakOXEEzw4z/uAAIJAQWPSvFtBrLtt+wy07tY
+8EwhCBgps2/T33/BVM/sBavuv3b6OOsOHeRuosE+jLyvnGHRvxDCKWc6IpyP
+vm7mOpxY
+=mobY
+-----END PGP SIGNATURE-----

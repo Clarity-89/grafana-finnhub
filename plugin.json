@@ -27,8 +27,8 @@
       }
     ],
     "screenshots": [],
-    "version": "%VERSION%",
-    "updated": "%TODAY%"
+    "version": "0.3.1",
+    "updated": "2022-03-12"
   },
   "routes": [
     {
