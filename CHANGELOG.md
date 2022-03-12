@@ -10,3 +10,6 @@
 ## 0.3.0
 - Store API token in secure field
 - Temporarily disabled trades websocket endpoint due to proxy auth issue (quote query with dashboard refresh can be used as a workaround).   
+
+## 0.3.1
+- Restore trades endpoint (websocket)
