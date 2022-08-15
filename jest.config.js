@@ -9,4 +9,5 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   globals: { 'ts-jest': { isolatedModules: true } },
   setupFiles: ['<rootDir>/test/setup.ts'],
+  testEnvironment: 'jsdom'
 };
