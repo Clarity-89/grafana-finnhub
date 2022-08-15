@@ -7,7 +7,8 @@
     "test": "grafana-toolkit plugin:test --watch",
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch",
-    "cleaninstall": "rm -rf node_modules && rm -rf yarn.lock && yarn install"
+    "cleaninstall": "rm -rf node_modules && rm -rf yarn.lock && yarn install",
+    "sign": "grafana-toolkit plugin:sign"
   },
   "author": "Alex Khomenko",
   "license": "Apache-2.0",
