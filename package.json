@@ -17,10 +17,10 @@
     "url": "https://github.com/Clarity-89/grafana-finnhub/issues"
   },
   "devDependencies": {
-    "@grafana/data": "latest",
-    "@grafana/runtime": "latest",
-    "@grafana/toolkit": "latest",
-    "@grafana/ui": "latest",
+    "@grafana/data": "9.1.0",
+    "@grafana/runtime": "9.1.0",
+    "@grafana/toolkit": "9.1.0",
+    "@grafana/ui": "9.1.0",
     "@testing-library/jest-dom": "^5.1.1",
     "@testing-library/react": "^9.5.0",
     "@types/lodash": "^4.14.155",
