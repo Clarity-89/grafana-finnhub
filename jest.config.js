@@ -1,13 +1,8 @@
+// force timezone to UTC to allow tests to work regardless of local timezone
+// generally used by snapshots, but can affect specific tests
+process.env.TZ = 'UTC';
+
 module.exports = {
-  verbose: false,
-  transform: {
-    '^.+\\.(js|ts|tsx)$': 'ts-jest',
-  },
-  moduleDirectories: ['node_modules', 'src'],
-  roots: ['<rootDir>/src'],
-  testRegex: '(\\.|/)(test)\\.(jsx?|tsx?)$',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  globals: { 'ts-jest': { isolatedModules: true } },
-  setupFiles: ['<rootDir>/test/setup.ts'],
-  testEnvironment: 'jsdom'
+  // Jest configuration provided by Grafana scaffolding
+  ...require('./.config/jest.config'),
 };
