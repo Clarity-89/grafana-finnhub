@@ -1,13 +1,13 @@
 import React, { ChangeEvent, FC } from 'react';
 import capitalize from 'lodash.capitalize';
 import { Form, Field, Input, Select } from '@grafana/ui';
-import { ExploreQueryFieldProps, SelectableValue } from '@grafana/data';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from '../types';
 import { stockMetrics, TABLE_QUERY_TYPES, TIMESERIES_QUERY_TYPES } from '../constants';
 import { getTargetType } from '../utils';
 
-type Props = ExploreQueryFieldProps<DataSource, MyQuery, MyDataSourceOptions>;
+type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 const queryTypes = [...TIMESERIES_QUERY_TYPES, ...TABLE_QUERY_TYPES];
 const metricOptions = stockMetrics.map((metric) => ({ value: metric, label: metric }));

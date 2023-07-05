@@ -28,7 +28,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
   url?: string;
 
-  /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendSrv) {
     super(instanceSettings);
     this.dataSourceName = instanceSettings.name;
@@ -288,9 +287,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   async testDatasource() {
     const resp = await this.get('profile2', { symbol: 'AAPL' });
     if (resp.status === 200) {
-      return { status: 'success' };
+      return { status: 'success', message: 'Data source is working' };
     }
-    return { status: 'error' };
+    return { status: 'error', message: 'Error retrieving data' };
   }
 
   async freeTextQuery(query: string) {

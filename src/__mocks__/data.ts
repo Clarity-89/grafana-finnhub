@@ -6,7 +6,6 @@ export const data: DataQueryRequest<MyQuery> = {
   requestId: 'Q101',
   timezone: '',
   panelId: 6,
-  dashboardId: 46,
   range: {
     from: dateTime('2012-08-14T12:36:09.485Z'),
     to: dateTime('2022-08-14T12:36:09.485Z'),
