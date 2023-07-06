@@ -25,6 +25,7 @@ export const convertToWebSocketUrl = (url: string) => {
 };
 
 const backendSrv = getBackendSrv();
+
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
   url?: string;

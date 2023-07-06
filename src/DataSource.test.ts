@@ -3,10 +3,21 @@ import { dateTime, MutableField, PluginType } from '@grafana/data';
 import { candleResponse, data } from './__mocks__/data';
 import { TargetType } from './types';
 
-const getDs = (opts: any = {}, backendSrv = { get: () => '' }) => {
+var mockGet: jest.Mock;
+jest.mock('@grafana/runtime', () => {
+  mockGet = jest.fn();
+  return {
+    getBackendSrv: () => ({
+      get: mockGet,
+    }),
+  };
+});
+
+const getDs = (opts: any = {}) => {
   const defaults = {
     type: 'finnhub-datasource',
     id: 1,
+    url: 'test.example.com',
     meta: {
       name: 'Finnhub',
       type: PluginType.datasource,
@@ -32,8 +43,7 @@ const getDs = (opts: any = {}, backendSrv = { get: () => '' }) => {
     name: 'Finnhub',
     jsonData: { apiToken: '123XX' },
   };
-  //@ts-ignore
-  return new DataSource({ ...defaults, ...opts }, backendSrv);
+  return new DataSource({ ...defaults, ...opts });
 };
 
 describe('DataSource', () => {
@@ -51,10 +61,8 @@ describe('DataSource', () => {
   });
 
   it('should call backendSrv.get with correct params', () => {
-    const mockGet = jest.fn();
     mockGet.mockReturnValue(candleResponse);
-    // @ts-ignore
-    const ds = getDs({}, { get: mockGet });
+    const ds = getDs({});
     ds.query(data);
     expect(mockGet).toBeCalledWith(`${ds.url}/api/stock/profile2`, {
       symbol: 'AAPL',
@@ -63,8 +71,8 @@ describe('DataSource', () => {
   });
 
   it('should return correct timeseries response for candle request', () => {
-    //@ts-ignore
-    const ds = getDs({}, { get: () => candleResponse });
+    mockGet.mockReturnValue(candleResponse);
+    const ds = getDs({});
 
     const data = ds.tsResponse(candleResponse, {
       type: { value: 'candle' },
@@ -96,8 +104,8 @@ describe('DataSource', () => {
         name: 'Apple Inc',
       },
     ];
-    //@ts-ignore
-    const ds = getDs({}, { get: () => candleResponse });
+    mockGet.mockReturnValue(candleResponse);
+    const ds = getDs({});
 
     it('should return correct data for table response', () => {
       expect(
