@@ -3,8 +3,8 @@ import { dateTime, MutableField, PluginType } from '@grafana/data';
 import { candleResponse, data } from './__mocks__/data';
 import { TargetType } from './types';
 
-// eslint-disable-next-line no-var
 // "var" is used here because jest.mock hoists variables
+// eslint-disable-next-line no-var
 var mockGet: jest.Mock;
 jest.mock('@grafana/runtime', () => {
   mockGet = jest.fn();
