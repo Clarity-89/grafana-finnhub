@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: yarn ci
+        run: yarn install --immutable --prefer-offline
 
       - name: Check types
         run: yarn run typecheck
