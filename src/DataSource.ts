@@ -10,7 +10,7 @@ import {
   MutableDataFrame,
   TimeRange,
 } from '@grafana/data';
-import { BackendSrv, config } from '@grafana/runtime';
+import { config, getBackendSrv } from '@grafana/runtime';
 import { CandleQuery, defaultQuery, MyDataSourceOptions, MyQuery, QueryParams, TargetType } from './types';
 import { ensureArray, getTargetType } from './utils';
 import { candleFields } from './constants';
@@ -24,12 +24,13 @@ export const convertToWebSocketUrl = (url: string) => {
   return `${backend}${url}`;
 };
 
+const backendSrv = getBackendSrv();
+
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
   url?: string;
 
-  /** @ngInject */
-  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendSrv) {
+  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
     this.dataSourceName = instanceSettings.name;
     this.url = instanceSettings.url;
@@ -286,16 +287,17 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async testDatasource() {
-    const resp = await this.get('profile2', { symbol: 'AAPL' });
-    if (resp.status === 200) {
-      return { status: 'success' };
+    try {
+      await this.get('profile2', { symbol: 'AAPL' });
+      return { status: 'success', message: 'Data source is working' };
+    } catch (e) {
+      return { status: 'error', message: 'Error retrieving data:', e };
     }
-    return { status: 'error' };
   }
 
   async freeTextQuery(query: string) {
     try {
-      return await this.backendSrv.get(`${this.url}/api/${query}`);
+      return await backendSrv.get(`${this.url}/api/${query}`);
     } catch (e) {
       console.error('Error retrieving data', e);
     }
@@ -304,7 +306,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   async get(dataType: string, params: QueryParams = {}) {
     const url = `${this.url}/api${dataType === 'quote' ? '' : '/stock'}`;
     try {
-      return await this.backendSrv.get(`${url}/${dataType}`, params);
+      return await backendSrv.get(`${url}/${dataType}`, params);
     } catch (e) {
       console.error('Error retrieving data', e);
       throw e;

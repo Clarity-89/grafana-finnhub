@@ -16,3 +16,6 @@
 
 ## 0.3.2
 - Update dependencies
+
+## 0.4.0 
+- Update the plugin to be compatible with Grafana 10 

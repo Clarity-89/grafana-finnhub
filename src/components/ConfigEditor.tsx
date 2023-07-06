@@ -41,7 +41,7 @@ export const ConfigEditor: FC<Props> = ({ options, onOptionsChange }) => {
         tooltip={
           <>
             Free API token can be created on{' '}
-            <a href={'https://finnhub.io/'} about={'blank'} rel={'noreferrer nopenner'}>
+            <a href={'https://finnhub.io/'} target={'_blank'} rel={'noreferrer nopenner'}>
               Finnhub website
             </a>
           </>
