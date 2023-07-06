@@ -28,6 +28,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   dataSourceName: string;
   url?: string;
 
+  /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>, private backendSrv: BackendSrv) {
     super(instanceSettings);
     this.dataSourceName = instanceSettings.name;
