@@ -19,3 +19,7 @@
 
 ## 0.4.0 
 - Update the plugin to be compatible with Grafana 10 
+ 
+## 0.4.1
+- Remove `grafanaVersion` from `plugin.json`
+- Update `grafanaDependency` in `plugin.json`
