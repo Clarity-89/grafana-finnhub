@@ -5,6 +5,7 @@
  * https://grafana.github.io/plugin-tools/docs/advanced-configuration#extending-the-jest-config
  */
 
+import { TextEncoder, TextDecoder } from 'util';
 import '@testing-library/jest-dom';
 
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
@@ -23,3 +24,5 @@ Object.defineProperty(global, 'matchMedia', {
 });
 
 HTMLCanvasElement.prototype.getContext = () => {};
+
+Object.assign(global, { TextDecoder, TextEncoder });
