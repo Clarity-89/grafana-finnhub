@@ -13,7 +13,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install --immutable --cached
+        run: yarn install --immutable
       - name: Build plugin
         run: yarn run build
       - name: Compatibility check
