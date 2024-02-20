@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
+          yarn-version: '4.x'
 
       - name: Setup Go environment
         uses: actions/setup-go@v3

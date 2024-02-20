@@ -11,6 +11,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
+          yarn-version: '4.x'
       - name: Install dependencies
         run: yarn install --immutable --prefer-offline
       - name: Build plugin
