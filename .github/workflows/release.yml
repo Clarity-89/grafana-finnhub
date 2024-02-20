@@ -18,16 +18,13 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
-      - name: Enable Corepack
-        run: corepack enable
-
       - name: Setup Go environment
         uses: actions/setup-go@v3
         with:
           go-version: '1.20'
 
       - name: Install dependencies
-        run: yarn install --immutable --prefer-offline
+        run: yarn install --immutable --cached
 
       - name: Build and test frontend
         run: yarn run build

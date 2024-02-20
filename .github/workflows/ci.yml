@@ -21,11 +21,8 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
-      - name: Enable Corepack
-        run: corepack enable
-
       - name: Install dependencies
-        run: yarn install --immutable --prefer-offline
+        run: yarn install --immutable --cached
 
       - name: Check types
         run: yarn run typecheck
