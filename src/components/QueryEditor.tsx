@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FC } from 'react';
 import capitalize from 'lodash.capitalize';
-import { Form, Field, Input, Select } from '@grafana/ui';
+import { Field, Input, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from '../types';
@@ -68,59 +68,47 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   const { queryText, symbol, type, resolution, metric } = { ...defaultQuery, ...query };
 
   return (
-    <Form onSubmit={onRunQuery}>
-      {({ register, errors }) => {
-        return (
-          <>
-            <Field label="Data type">
-              <Select
-                data-testid="Data type"
-                onChange={onTypeChange}
-                options={dataTypes}
-                value={type}
-                defaultValue={type}
-              />
-            </Field>
-            {type.value !== 'exchange' && (
-              <Field label="Symbol">
-                <Input
-                  value={symbol}
-                  name={'symbol'}
-                  onChange={onValueChange}
-                  onKeyDown={onKeyDown}
-                  placeholder="Stock symbol"
-                />
-              </Field>
-            )}
+    <form onSubmit={onRunQuery}>
+      <Field label="Data type">
+        <Select data-testid="Data type" onChange={onTypeChange} options={dataTypes} value={type} defaultValue={type} />
+      </Field>
+      {type.value !== 'exchange' && (
+        <Field label="Symbol">
+          <Input
+            value={symbol}
+            name={'symbol'}
+            onChange={onValueChange}
+            onKeyDown={onKeyDown}
+            placeholder="Stock symbol"
+          />
+        </Field>
+      )}
 
-            {type.value === 'candle' && (
-              <Field label="Resolution">
-                <Select onChange={onResolutionChange} options={resolutions} value={resolution} />
-              </Field>
-            )}
+      {type.value === 'candle' && (
+        <Field label="Resolution">
+          <Select onChange={onResolutionChange} options={resolutions} value={resolution} />
+        </Field>
+      )}
 
-            {type.value === 'metric' && (
-              <Field label="Metric">
-                <Select onChange={onMetricChange} options={metricOptions} value={metric} defaultValue={metric} />
-              </Field>
-            )}
-            {type.value !== 'trades' && (
-              <Field
-                label="Free Query Text"
-                horizontal={false}
-                description="Experimental. Will override any selected values above."
-              >
-                <Input
-                  value={queryText || ''}
-                  onChange={onQueryTextChange}
-                  onKeyDown={onKeyDown}
-                  placeholder="Custom query e.g. 'earnings?symbol=AAPL'"
-                />
-              </Field>
-            )}
-          </>
-        );
-      }}
-    </Form>
+      {type.value === 'metric' && (
+        <Field label="Metric">
+          <Select onChange={onMetricChange} options={metricOptions} value={metric} defaultValue={metric} />
+        </Field>
+      )}
+      {type.value !== 'trades' && (
+        <Field
+          label="Free Query Text"
+          horizontal={false}
+          description="Experimental. Will override any selected values above."
+        >
+          <Input
+            value={queryText || ''}
+            onChange={onQueryTextChange}
+            onKeyDown={onKeyDown}
+            placeholder="Custom query e.g. 'earnings?symbol=AAPL'"
+          />
+        </Field>
+      )}
+    </form>
   );
 };
