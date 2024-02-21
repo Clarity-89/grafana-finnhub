@@ -4,7 +4,7 @@ import { Field, Input, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from '../types';
-import { stockMetrics, TABLE_QUERY_TYPES, TIMESERIES_QUERY_TYPES } from '../constants';
+import { PREMIUM_QUERIES, stockMetrics, TABLE_QUERY_TYPES, TIMESERIES_QUERY_TYPES } from '../constants';
 import { getTargetType } from '../utils';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
@@ -61,7 +61,7 @@ export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
   };
 
   const dataTypes = queryTypes.map((type) => ({
-    label: capitalize(type).replace(/\d+/g, ''), // Remove numbers from labels
+    label: `${capitalize(type).replace(/\d+/g, '')} ${PREMIUM_QUERIES.includes(type) ? '(Premium)' : ''}`, // Remove numbers from labels
     value: type,
   }));
 

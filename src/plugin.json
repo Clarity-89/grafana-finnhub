@@ -9,9 +9,7 @@
     "author": {
       "name": "Alex Khomenko"
     },
-    "keywords": [
-      "Finnhub"
-    ],
+    "keywords": ["Finnhub"],
     "logos": {
       "small": "img/logo.png",
       "large": "img/logo.png"
@@ -54,7 +52,7 @@
     }
   ],
   "dependencies": {
-    "grafanaDependency": ">=7.1.0",
+    "grafanaDependency": ">=10.0.0",
     "plugins": []
   }
 }
