@@ -12,6 +12,9 @@ jest.mock('@grafana/runtime', () => {
     getBackendSrv: () => ({
       get: mockGet,
     }),
+    getTemplateSrv: () => ({
+      replace: (value: string) => value,
+    }),
   };
 });
 

@@ -10,7 +10,7 @@ import {
   MutableDataFrame,
   TimeRange,
 } from '@grafana/data';
-import { config, getBackendSrv } from '@grafana/runtime';
+import { config, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { CandleQuery, defaultQuery, MyDataSourceOptions, MyQuery, QueryParams, TargetType } from './types';
 import { ensureArray, getTargetType } from './utils';
 import { candleFields } from './constants';
@@ -37,7 +37,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
-    const symbol = target.symbol?.toUpperCase();
+    const interpolatedSymbol = getTemplateSrv().replace(target.symbol);
+    const symbol = interpolatedSymbol?.toUpperCase();
     const { refId } = target;
     switch (target.type?.value) {
       case 'candle': {
