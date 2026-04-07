@@ -1,5 +1,5 @@
 import { DataSource } from './DataSource';
-import { dateTime, MutableField, PluginType } from '@grafana/data';
+import { dateTime, Field, PluginType } from '@grafana/data';
 import { candleResponse, data } from './__mocks__/data';
 import { TargetType } from './types';
 
@@ -95,7 +95,7 @@ describe('DataSource', () => {
       v: [908559107, 811232864],
     };
     Object.entries(candleData).forEach(([key, val]) =>
-      expect(data[0].fields.find((f: MutableField) => f.name === key)?.values.toArray()).toEqual(val)
+      expect(data[0].fields.find((f: Field) => f.name === key)?.values).toEqual(val)
     );
   });
 
@@ -121,7 +121,7 @@ describe('DataSource', () => {
             format: TargetType.Table,
             metric: { value: '' },
           })[0]
-          .fields[0].values.toArray()
+          .fields[0].values
       ).toEqual(data);
     });
 
@@ -133,7 +133,7 @@ describe('DataSource', () => {
         metric: { value: '' },
       })[0].fields[0];
 
-      expect(field.values.toArray()).toEqual([]);
+      expect(field.values).toEqual([]);
       expect(field.name).toEqual('no data');
     });
   });

@@ -1,13 +1,14 @@
 import { from, merge, Observable } from 'rxjs';
 import {
   CircularDataFrame,
+  createDataFrame,
+  DataFrame,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
   dateTime,
   FieldType,
-  MutableDataFrame,
   TimeRange,
 } from '@grafana/data';
 import { config, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
@@ -131,11 +132,11 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     return merge(...streams, observable);
   }
 
-  tableResponse = (data: any, target: MyQuery): MutableDataFrame[] => {
+  tableResponse = (data: any, target: MyQuery): DataFrame[] => {
     // Empty data frame
     if (!data || data.s === 'no_data') {
       return [
-        new MutableDataFrame({
+        createDataFrame({
           refId: target.refId,
           fields: [
             {
@@ -152,7 +153,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     }
 
     return [
-      new MutableDataFrame({
+      createDataFrame({
         refId: target.refId,
         fields: Object.entries(data).map(([key, val]) => ({
           name: key,
@@ -167,10 +168,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   };
 
   // Timeseries response
-  tsResponse(data: any, target: MyQuery): MutableDataFrame[] {
+  tsResponse(data: any, target: MyQuery): DataFrame[] {
     const { refId } = target;
     const emptyDf = [
-      new MutableDataFrame({
+      createDataFrame({
         refId,
         fields: [
           {
@@ -195,7 +196,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         const timeKey = 'period';
         const keys = Object.keys(data[0]).filter((key) => !excludedFields.includes(key));
         return [
-          new MutableDataFrame({
+          createDataFrame({
             refId,
             fields: keys.map((key) => ({
               type: key === timeKey ? FieldType.time : FieldType.number,
@@ -215,7 +216,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           ['c', 'current price'],
         ]);
         return [
-          new MutableDataFrame({
+          createDataFrame({
             refId,
             fields: [...fields].map(([key, label]) => ({
               type: key === timeKey ? FieldType.time : FieldType.number,
@@ -231,7 +232,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       case 'candle': {
         const timeKey = 't';
         return [
-          new MutableDataFrame({
+          createDataFrame({
             refId,
             fields: [...candleFields].map(([key, label]) => {
               return {
@@ -254,7 +255,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           const networkData = data[network];
           const keys = Object.keys(networkData[0]);
           const collectedData = Object.fromEntries(keys.map((key) => [key, networkData.map((d: any) => d[key])]));
-          return new MutableDataFrame({
+          return createDataFrame({
             refId,
             fields: keys.map((key) => ({
               type: key === timeKey ? FieldType.time : FieldType.number,
@@ -271,7 +272,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       default:
         const timeKeys = ['t', 'time', 'period'];
         return [
-          new MutableDataFrame({
+          createDataFrame({
             refId,
             fields: Object.entries(data).map(([key, value]) => {
               return {
