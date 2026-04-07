@@ -42,7 +42,6 @@
     {
       "path": "ws",
       "url": "https://ws.finnhub.io",
-      "method": "*",
       "urlParams": [
         {
           "name": "token",
