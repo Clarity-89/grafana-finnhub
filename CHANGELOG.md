@@ -1,3 +1,12 @@
+## 0.7.0
+
+- Update the plugin to be compatible with Grafana 12
+- Replace deprecated `MutableDataFrame` with `createDataFrame`
+- Remove wildcard method from datasource proxy routes
+- Upgrade GitHub Actions and pin to commit SHAs
+- Update Node.js to 22 (LTS) and Go to 1.24 in CI workflows
+- Remove accidental `g` dependency
+
 ## 0.6.0
 
 - Add support for `$symbol` variable
