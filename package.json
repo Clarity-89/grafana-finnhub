@@ -66,6 +66,7 @@
   "resolutions": {
     "axios": "^0.21.1",
     "flatted": "^3.4.2",
+    "glob": "^10.5.0",
     "node-notifier": "^8.0.1",
     "rxjs": "^7.5.1",
     "serialize-javascript": "^7.0.5",
