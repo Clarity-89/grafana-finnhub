@@ -79,7 +79,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           const url = convertToWebSocketUrl(this.url + '/ws');
           const socket = new WebSocket(url);
           socket.onopen = () => socket.send(JSON.stringify({ type: 'subscribe', symbol: query.symbol }));
-          socket.onerror = (error: any) => console.log(`WebSocket error: ${JSON.stringify(error)}`);
+          socket.onerror = () => subscriber.error(new Error('WebSocket error'));
           socket.onclose = () => subscriber.complete();
           socket.onmessage = (event: MessageEvent) => {
             try {
@@ -94,7 +94,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
                 });
               }
             } catch (e) {
-              console.error(e);
+              subscriber.error(e);
             }
           };
 
@@ -301,17 +301,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     try {
       return await backendSrv.get(`${this.url}/api/${query}`);
     } catch (e) {
-      console.error('Error retrieving data', e);
+      throw e;
     }
   }
 
   async get(dataType: string, params: QueryParams = {}) {
     const url = `${this.url}/api${dataType === 'quote' ? '' : '/stock'}`;
-    try {
-      return await backendSrv.get(`${url}/${dataType}`, params);
-    } catch (e) {
-      console.error('Error retrieving data', e);
-      throw e;
-    }
+    return await backendSrv.get(`${url}/${dataType}`, params);
   }
 }
