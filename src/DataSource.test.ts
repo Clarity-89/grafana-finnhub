@@ -1,140 +1,63 @@
+import { lastValueFrom } from 'rxjs';
+import { DataSourceInstanceSettings, Field, FieldType } from '@grafana/data';
 import { DataSource } from './DataSource';
-import { dateTime, Field, PluginType } from '@grafana/data';
-import { candleResponse, data } from './__mocks__/data';
-import { TargetType } from './types';
+import { legacyQuery, request } from './__mocks__/data';
+import { MyQuery } from './types';
 
-// "var" is used here because jest.mock hoists variables
-// eslint-disable-next-line no-var
-var mockGet: jest.Mock;
-jest.mock('@grafana/runtime', () => {
-  mockGet = jest.fn();
-  return {
-    getBackendSrv: () => ({
-      get: mockGet,
-    }),
-    getTemplateSrv: () => ({
-      replace: (value: string) => value,
-    }),
-  };
-});
+const mockGet = jest.fn();
+jest.mock('@grafana/runtime', () => ({
+  getBackendSrv: () => ({ get: mockGet }),
+  getTemplateSrv: () => ({ replace: (value: string) => value }),
+}));
 
-const getDs = (opts: any = {}) => {
-  const defaults = {
-    type: 'finnhub-datasource',
-    id: 1,
-    url: 'test.example.com',
-    meta: {
-      name: 'Finnhub',
-      type: PluginType.datasource,
-      id: 'finnhub-datasource',
-      module: 'plugins/finnhub-datasource/module',
-      baseUrl: 'public/plugins/finnhub-datasource',
-      url: 'test.example.com',
-      info: {
-        author: { name: 'Alex Khomenko', url: '' },
-        description: 'Finnhub Data Source',
-        links: [],
-        logos: {
-          small: 'public/plugins/finnhub-datasource/img/logo.svg',
-          large: 'public/plugins/finnhub-datasource/img/logo.svg',
-        },
+// Only `url` and the DataSourceApi base fields are read; plugin meta is irrelevant here.
+const settings = {
+  id: 1,
+  uid: 'finnhub',
+  type: 'clarity89-finnhub-datasource',
+  name: 'Finnhub',
+  url: 'test.example.com',
+  jsonData: {},
+  readOnly: false,
+  access: 'proxy',
+} as DataSourceInstanceSettings;
 
-        build: {},
-        screenshots: [],
-        version: '1.0.0',
-        updated: '2020-03-10',
-      },
-    },
-    name: 'Finnhub',
-    jsonData: { apiToken: '123XX' },
-  };
-  return new DataSource({ ...defaults, ...opts });
-};
+describe('DataSource.query', () => {
+  beforeEach(() => mockGet.mockReset());
 
-describe('DataSource', () => {
-  it('should construct query based on params', () => {
-    const ds = getDs();
-    const target = { symbol: 'test' };
-    const range = { to: dateTime(), from: dateTime().subtract(1, 'months'), raw: { from: 'now-1m', to: 'now' } };
-    expect(ds.constructQuery(target, range)).toEqual({ symbol: 'TEST' });
-    expect(ds.constructQuery({ ...target, type: { value: 'candle' }, resolution: 'M' }, range)).toEqual({
-      symbol: 'TEST',
-      resolution: 'M',
-      to: range.to.unix(),
-      from: range.from.unix(),
-    });
+  it('requests one endpoint per visible target with interpolated params only', async () => {
+    mockGet.mockResolvedValue({});
+    const ds = new DataSource(settings);
+    // Old dashboards hold the pre-0.8 shape at runtime; the prop type is the current model.
+    const targets = [legacyQuery as MyQuery, { ...request.targets[0], refId: 'B', hide: true }];
+
+    await lastValueFrom(ds.query({ ...request, targets }));
+
+    expect(mockGet).toHaveBeenCalledTimes(1);
+    expect(mockGet).toHaveBeenCalledWith('test.example.com/api/stock/profile2', { symbol: 'AAPL' });
   });
 
-  it('should call backendSrv.get with correct params', () => {
-    mockGet.mockReturnValue(candleResponse);
-    const ds = getDs({});
-    ds.query(data);
-    expect(mockGet).toBeCalledWith(`${ds.url}/api/stock/profile2`, {
-      symbol: 'AAPL',
-      refId: 'A',
-    });
+  it('tags the frames of each target with its refId', async () => {
+    mockGet.mockResolvedValue({ name: 'Apple Inc', marketCapitalization: 2000 });
+    const ds = new DataSource(settings);
+
+    const { data } = await lastValueFrom(ds.query(request));
+
+    expect(data[0].refId).toBe('A');
+    expect(data[0].fields.map((field: Field) => [field.name, field.type, field.values])).toEqual([
+      ['name', FieldType.string, ['Apple Inc']],
+      ['marketCapitalization', FieldType.number, [2000]],
+    ]);
   });
 
-  it('should return correct timeseries response for candle request', () => {
-    mockGet.mockReturnValue(candleResponse);
-    const ds = getDs({});
+  it('sends free text as the raw path and shapes the response generically', async () => {
+    mockGet.mockResolvedValue({ t: [1577854800], c: [1.5] });
+    const ds = new DataSource(settings);
+    const target = { ...request.targets[0], queryText: 'stock/candle?symbol=AAPL&resolution=D' };
 
-    const data = ds.tsResponse(candleResponse, {
-      type: { value: 'candle' },
-      refId: 'A',
-      format: TargetType.Timeseries,
-      metric: { value: '' },
-    });
+    const { data } = await lastValueFrom(ds.query({ ...request, targets: [target] }));
 
-    const candleData = {
-      c: [309.51, 256.59],
-      h: [327.85, 327.22],
-      l: [292.75, 254.99],
-      o: [296.24, 304.3],
-      t: [1577854800000, 1580533200000],
-      v: [908559107, 811232864],
-    };
-    Object.entries(candleData).forEach(([key, val]) =>
-      expect(data[0].fields.find((f: Field) => f.name === key)?.values).toEqual(val)
-    );
-  });
-
-  describe('tableResponse', () => {
-    const data = [
-      {
-        address: '1 Apple Park Way',
-        city: 'CUPERTINO',
-        country: 'US',
-        description: 'Apple Inc. designs',
-        name: 'Apple Inc',
-      },
-    ];
-    mockGet.mockReturnValue(candleResponse);
-    const ds = getDs({});
-
-    it('should return correct data for table response', () => {
-      expect(
-        ds
-          .tableResponse(data, {
-            type: { value: 'profile' },
-            refId: 'A',
-            format: TargetType.Table,
-            metric: { value: '' },
-          })[0]
-          .fields[0].values
-      ).toEqual(data);
-    });
-
-    it('should return empty data frame for no data', () => {
-      const field = ds.tableResponse(undefined, {
-        type: { value: 'profile' },
-        refId: 'A',
-        format: TargetType.Table,
-        metric: { value: '' },
-      })[0].fields[0];
-
-      expect(field.values).toEqual([]);
-      expect(field.name).toEqual('no data');
-    });
+    expect(mockGet).toHaveBeenCalledWith('test.example.com/api/stock/candle?symbol=AAPL&resolution=D', undefined);
+    expect(data[0].fields[0]).toMatchObject({ name: 't', type: FieldType.time, values: [1577854800000] });
   });
 });

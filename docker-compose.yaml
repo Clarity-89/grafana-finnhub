@@ -1,5 +1,3 @@
-version: '3.0'
-
 services:
   grafana:
     container_name: 'clarity89-finnhub-datasource'
@@ -12,4 +10,3 @@ services:
       - 3000:3000/tcp
     volumes:
       - ./dist:/var/lib/grafana/plugins/clarity89-finnhub-datasource
-      - ./provisioning:/etc/grafana/provisioning
