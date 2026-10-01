@@ -1,10 +1,12 @@
 import { from, merge, Observable } from 'rxjs';
 import {
+  AnnotationSupport,
   DataFrame,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
+  DataSourceVariableSupport,
   ScopedVars,
   TimeRange,
 } from '@grafana/data';
@@ -14,12 +16,28 @@ import { normalizeQuery, QueryParams, QueryTypeDef, queryTypes, RestQueryType } 
 import { streamTrades } from './streamTrades';
 import { MyDataSourceOptions, MyQuery } from './types';
 
+export interface SymbolMatch {
+  symbol: string;
+  displaySymbol: string;
+  description: string;
+}
+
+/** Query variables run the regular query editor and take the first string field as options. */
+class FinnhubVariables extends DataSourceVariableSupport<DataSource> {}
+
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   readonly url?: string;
+
+  /** Standard Grafana annotation processing over our frames; the live trade stream is not an annotation source. */
+  annotations: AnnotationSupport<MyQuery> = {
+    getDefaultQuery: () => ({ type: 'company-news' }),
+    prepareQuery: (anno) => (anno.target?.type === 'trades' ? undefined : anno.target),
+  };
 
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
     this.url = instanceSettings.url;
+    this.variables = new FinnhubVariables();
   }
 
   query(request: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
@@ -50,9 +68,29 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     }
   }
 
+  /** Finnhub symbol search. Blank text and template expressions are not looked up; request failures propagate so the picker can show them. */
+  async searchSymbols(text: string): Promise<SymbolMatch[]> {
+    const q = text.trim();
+    if (!q || q.includes('$')) {
+      return [];
+    }
+    const { result } = await this.get<{ result?: unknown }>('search', { q });
+    // Trusted like every other Finnhub shape here.
+    return Array.isArray(result) ? (result as SymbolMatch[]) : [];
+  }
+
   private interpolate(target: MyQuery, scopedVars: ScopedVars): MyQuery {
     const query = normalizeQuery(target);
-    return { ...query, symbol: getTemplateSrv().replace(query.symbol, scopedVars).toUpperCase() };
+    const replace = (value: string) => getTemplateSrv().replace(value, scopedVars);
+    const symbol = replace(query.symbol);
+    const def: QueryTypeDef = queryTypes[query.type];
+    return {
+      ...query,
+      // A symbol-lookup search term keeps its case; tickers are upper-cased.
+      symbol: def.inputs.includes('symbol') ? symbol.toUpperCase() : symbol,
+      exchange: replace(query.exchange),
+      category: replace(query.category),
+    };
   }
 
   private async fetchFrames(query: MyQuery, def: RestQueryType, range: TimeRange): Promise<DataFrame[]> {
@@ -62,8 +100,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     return def.toFrames(await this.get(def.path, def.params(query, range)), query.refId);
   }
 
-  private get(path: string, params?: QueryParams): Promise<unknown> {
-    return getBackendSrv().get<unknown>(`${this.url}/api/${path}`, params);
+  private get<T = unknown>(path: string, params?: QueryParams): Promise<T> {
+    return getBackendSrv().get<T>(`${this.url}/api/${path}`, params);
   }
 
   /** Grafana serves under `<base href="<appSubUrl>/">`, so resolving the proxy path against it mirrors backendSrv. */

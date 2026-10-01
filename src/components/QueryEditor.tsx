@@ -3,14 +3,14 @@ import { Combobox, ComboboxOption, Field, Input } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { normalizeQuery, QueryTypeDef, queryTypes } from '../queryTypes';
-import { MyDataSourceOptions, MyQuery, QueryType } from '../types';
+import { MyDataSourceOptions, MyQuery, QueryInput, QueryType } from '../types';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 // Object.keys loses the key union; the registry is declared over exactly QueryType.
 const typeOptions: Array<ComboboxOption<QueryType>> = (Object.keys(queryTypes) as QueryType[]).map((value) => {
   const { label, premium }: QueryTypeDef = queryTypes[value];
-  return { value, label: premium ? `${label} (Premium)` : label };
+  return { value, label, group: premium ? 'Premium' : 'Free' };
 });
 
 const metricOptions: ComboboxOption[] = [
@@ -34,8 +34,20 @@ const resolutionOptions: ComboboxOption[] = [
   { value: 'M', label: 'Month' },
 ];
 
-export const QueryEditor = ({ onChange, onRunQuery, query: saved }: Props) => {
+const categoryOptions: ComboboxOption[] = ['general', 'forex', 'crypto', 'merger'].map((value) => ({ value }));
+
+const searchOptions = async (datasource: DataSource, text: string): Promise<ComboboxOption[]> =>
+  (await datasource.searchSymbols(text)).map(({ symbol, displaySymbol, description }) => ({
+    value: symbol,
+    label: displaySymbol,
+    description,
+  }));
+
+export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: Props) => {
   const query = normalizeQuery(saved);
+  const def: QueryTypeDef = queryTypes[query.type];
+  const has = (input: QueryInput) => def.inputs.includes(input);
+  const isRest = 'path' in def;
   const update = (patch: Partial<MyQuery>) => onChange({ ...query, ...patch });
   const runOnEnter = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {
@@ -45,7 +57,7 @@ export const QueryEditor = ({ onChange, onRunQuery, query: saved }: Props) => {
 
   return (
     <>
-      <Field label="Data type">
+      <Field label="Data type" description={def.description}>
         <Combobox
           id="finnhub-type"
           options={typeOptions}
@@ -53,36 +65,84 @@ export const QueryEditor = ({ onChange, onRunQuery, query: saved }: Props) => {
           onChange={(option) => update({ type: option.value })}
         />
       </Field>
-      <Field label="Symbol">
-        <Input
-          id="finnhub-symbol"
-          value={query.symbol}
-          placeholder="Stock symbol"
-          onChange={(event: ChangeEvent<HTMLInputElement>) => update({ symbol: event.target.value })}
-          onKeyDown={runOnEnter}
-        />
-      </Field>
-      {query.type === 'candle' && (
+      {has('symbol') && (
+        <Field label="Symbol">
+          <Combobox
+            id="finnhub-symbol"
+            isClearable
+            createCustomValue
+            placeholder="Ticker or company name"
+            options={(text) => searchOptions(datasource, text)}
+            value={query.symbol ? { value: query.symbol, label: query.symbol } : null}
+            onChange={(option) => {
+              update({ symbol: option?.value ?? '' });
+              onRunQuery();
+            }}
+          />
+        </Field>
+      )}
+      {has('search') && (
+        <Field label="Search">
+          <Input
+            id="finnhub-search"
+            value={query.symbol}
+            placeholder="Ticker, company name, ISIN or CUSIP"
+            onChange={(event: ChangeEvent<HTMLInputElement>) => update({ symbol: event.target.value })}
+            onKeyDown={runOnEnter}
+          />
+        </Field>
+      )}
+      {has('resolution') && (
         <Field label="Resolution">
           <Combobox
             id="finnhub-resolution"
             options={resolutionOptions}
             value={query.resolution}
-            onChange={(option) => update({ resolution: option.value })}
+            onChange={(option) => {
+              update({ resolution: option.value });
+              onRunQuery();
+            }}
           />
         </Field>
       )}
-      {query.type === 'metric' && (
+      {has('metric') && (
         <Field label="Metric">
           <Combobox
             id="finnhub-metric"
             options={metricOptions}
             value={query.metric}
-            onChange={(option) => update({ metric: option.value })}
+            onChange={(option) => {
+              update({ metric: option.value });
+              onRunQuery();
+            }}
           />
         </Field>
       )}
-      {query.type !== 'trades' && (
+      {has('exchange') && (
+        <Field label="Exchange">
+          <Input
+            id="finnhub-exchange"
+            value={query.exchange}
+            placeholder="Exchange code, e.g. US"
+            onChange={(event: ChangeEvent<HTMLInputElement>) => update({ exchange: event.target.value })}
+            onKeyDown={runOnEnter}
+          />
+        </Field>
+      )}
+      {has('category') && (
+        <Field label="Category">
+          <Combobox
+            id="finnhub-category"
+            options={categoryOptions}
+            value={query.category}
+            onChange={(option) => {
+              update({ category: option.value });
+              onRunQuery();
+            }}
+          />
+        </Field>
+      )}
+      {isRest && (
         <Field label="Free Query Text" description="Experimental. Will override any selected values above.">
           <Input
             id="finnhub-query-text"

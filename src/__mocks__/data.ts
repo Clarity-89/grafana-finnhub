@@ -12,7 +12,9 @@ export const request: DataQueryRequest<MyQuery> = {
   },
   interval: '1d',
   intervalMs: 86400000,
-  targets: [{ refId: 'A', type: 'profile2', symbol: 'AAPL', resolution: '1', metric: 'price' }],
+  targets: [
+    { refId: 'A', type: 'profile2', symbol: 'AAPL', resolution: '1', metric: 'price', exchange: 'US', category: 'general' },
+  ],
   scopedVars: {},
   startTime: 1584015969943,
 };

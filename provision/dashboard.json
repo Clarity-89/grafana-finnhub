@@ -14,7 +14,7 @@
       "type": "datasource",
       "id": "clarity89-finnhub-datasource",
       "name": "Finnhub",
-      "version": "0.8.0"
+      "version": "1.0.0"
     },
     {
       "type": "grafana",
@@ -90,18 +90,128 @@
             "selected": true
           }
         ]
+      },
+      {
+        "type": "query",
+        "name": "peer",
+        "label": "Peer",
+        "datasource": {
+          "type": "clarity89-finnhub-datasource",
+          "uid": "${DS_FINNHUB}"
+        },
+        "query": {
+          "refId": "PeerVar",
+          "type": "peers",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        },
+        "refresh": 1,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "current": {},
+        "options": []
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "name": "Company news",
+        "enable": true,
+        "iconColor": "blue",
+        "datasource": {
+          "type": "clarity89-finnhub-datasource",
+          "uid": "${DS_FINNHUB}"
+        },
+        "target": {
+          "refId": "Anno",
+          "type": "company-news",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
       }
     ]
   },
   "panels": [
     {
+      "id": 9,
+      "type": "stat",
+      "title": "US market",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 6
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "market-status",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "true": {
+                  "text": "Open",
+                  "color": "green",
+                  "index": 0
+                },
+                "false": {
+                  "text": "Closed",
+                  "color": "red",
+                  "index": 1
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^isOpen$/",
+          "values": false
+        },
+        "textMode": "value",
+        "graphMode": "none",
+        "colorMode": "background"
+      }
+    },
+    {
       "id": 1,
       "type": "stat",
       "title": "$symbol quote",
       "gridPos": {
-        "x": 0,
+        "x": 4,
         "y": 0,
-        "w": 6,
+        "w": 4,
         "h": 6
       },
       "datasource": {
@@ -118,7 +228,62 @@
           "type": "quote",
           "symbol": "$symbol",
           "resolution": "D",
-          "metric": "price"
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^current price$/",
+          "values": false
+        },
+        "textMode": "value",
+        "graphMode": "none",
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "$peer quote",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 6
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "quote",
+          "symbol": "$peer",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
         }
       ],
       "fieldConfig": {
@@ -150,9 +315,9 @@
       "type": "table",
       "title": "$symbol profile",
       "gridPos": {
-        "x": 6,
+        "x": 12,
         "y": 0,
-        "w": 18,
+        "w": 12,
         "h": 6
       },
       "datasource": {
@@ -169,7 +334,9 @@
           "type": "profile2",
           "symbol": "$symbol",
           "resolution": "D",
-          "metric": "price"
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
         }
       ],
       "transformations": [
@@ -216,7 +383,9 @@
           "type": "earnings",
           "symbol": "$symbol",
           "resolution": "D",
-          "metric": "price"
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
         }
       ],
       "transformations": [
@@ -277,7 +446,9 @@
           "type": "trades",
           "symbol": "$stream",
           "resolution": "D",
-          "metric": "price"
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
         }
       ],
       "fieldConfig": {
@@ -304,12 +475,411 @@
       }
     },
     {
+      "id": 10,
+      "type": "timeseries",
+      "title": "$symbol recommendation trends",
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "recommendation",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "lineWidth": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "$symbol insider sentiment",
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "insider-sentiment",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 60
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "change"
+            },
+            "properties": [
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "table",
+      "title": "$symbol company news",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 9
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "company-news",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "text": true
+            },
+            "indexByName": {
+              "time": 0,
+              "title": 1,
+              "tags": 2,
+              "url": 3
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 13,
+      "type": "table",
+      "title": "$symbol insider transactions",
+      "description": "Latest 100 transactions in range",
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 12,
+        "h": 10
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "insider-transactions",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 14,
+      "type": "table",
+      "title": "$symbol SEC filings",
+      "description": "Latest 250 filings in range",
+      "gridPos": {
+        "x": 12,
+        "y": 33,
+        "w": 12,
+        "h": 10
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "filings",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 15,
+      "type": "table",
+      "title": "$symbol earnings calendar",
+      "description": "Free keys cover about one month of history",
+      "gridPos": {
+        "x": 0,
+        "y": 43,
+        "w": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "earnings-calendar",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 16,
+      "type": "table",
+      "title": "IPO calendar",
+      "gridPos": {
+        "x": 12,
+        "y": 43,
+        "w": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "ipo-calendar",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 17,
+      "type": "table",
+      "title": "Market news",
+      "description": "Latest headlines, independent of the time range",
+      "gridPos": {
+        "x": 0,
+        "y": 52,
+        "w": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "market-news",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 18,
+      "type": "table",
+      "title": "US market holidays",
+      "gridPos": {
+        "x": 12,
+        "y": 52,
+        "w": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "clarity89-finnhub-datasource",
+        "uid": "${DS_FINNHUB}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "clarity89-finnhub-datasource",
+            "uid": "${DS_FINNHUB}"
+          },
+          "type": "market-holiday",
+          "symbol": "$symbol",
+          "resolution": "D",
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "cellHeight": "sm"
+      }
+    },
+    {
       "id": 5,
       "type": "table",
       "title": "$symbol basic financials (price metrics)",
       "gridPos": {
         "x": 0,
-        "y": 15,
+        "y": 61,
         "w": 24,
         "h": 12
       },
@@ -327,7 +897,9 @@
           "type": "metric",
           "symbol": "$symbol",
           "resolution": "D",
-          "metric": "price"
+          "metric": "price",
+          "exchange": "US",
+          "category": "general"
         }
       ],
       "transformations": [
@@ -363,7 +935,7 @@
       "collapsed": true,
       "gridPos": {
         "x": 0,
-        "y": 27,
+        "y": 73,
         "w": 24,
         "h": 1
       },
@@ -374,7 +946,7 @@
           "title": "$symbol daily candles",
           "gridPos": {
             "x": 0,
-            "y": 28,
+            "y": 74,
             "w": 12,
             "h": 9
           },
@@ -392,7 +964,9 @@
               "type": "candle",
               "symbol": "$symbol",
               "resolution": "D",
-              "metric": "price"
+              "metric": "price",
+              "exchange": "US",
+              "category": "general"
             }
           ],
           "fieldConfig": {
@@ -439,7 +1013,7 @@
           "title": "$symbol social sentiment",
           "gridPos": {
             "x": 12,
-            "y": 28,
+            "y": 74,
             "w": 12,
             "h": 9
           },
@@ -457,7 +1031,9 @@
               "type": "social-sentiment",
               "symbol": "$symbol",
               "resolution": "D",
-              "metric": "price"
+              "metric": "price",
+              "exchange": "US",
+              "category": "general"
             }
           ],
           "fieldConfig": {

@@ -1,3 +1,15 @@
+## 1.0.0
+
+- Add the free endpoints: recommendation trends, company news, market news, SEC filings, insider sentiment, insider transactions, earnings calendar, IPO calendar, market holidays, market status, symbol lookup and peers
+- Annotations: company news, filings and calendars can mark any dashboard panel (news carries headline, summary and source tag)
+- Query variables: fill `$symbol`-style variables from the data source, for example peers of the selected symbol
+- The Symbol field searches Finnhub as you type; custom values such as `$symbol` still work, and clearing it queries the whole market where supported
+- The Data type menu groups entries as Free and Premium and shows Finnhub's limits for the selected type
+- Add `exchange` (market status, holidays) and `category` (market news) query fields
+- Date-only values and timezone-free timestamps are read as UTC, so points land identically in every browser. Earnings and social sentiment points shift by the browser's UTC offset compared with 0.8
+- List endpoints keep their typed columns when Finnhub returns nothing or only nulls
+- Sample dashboard: market status, peer quote, recommendation, insider, news, filings and calendar panels; a company news annotation; a `peer` query variable
+
 ## 0.8.0
 
 - Require Grafana 12.4 or later (0.7.0 also failed to load on 10.0.x, which lacks `createDataFrame`)
