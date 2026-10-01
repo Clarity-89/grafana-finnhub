@@ -8,7 +8,7 @@ import {
   ScopedVars,
   TimeRange,
 } from '@grafana/data';
-import { config, getBackendSrv, getTemplateSrv, isFetchError } from '@grafana/runtime';
+import { getBackendSrv, getTemplateSrv, isFetchError } from '@grafana/runtime';
 import { genericFrames } from './frames';
 import { normalizeQuery, QueryParams, QueryTypeDef, queryTypes, RestQueryType } from './queryTypes';
 import { streamTrades } from './streamTrades';
@@ -66,9 +66,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     return getBackendSrv().get<unknown>(`${this.url}/api/${path}`, params);
   }
 
+  /** Grafana serves under `<base href="<appSubUrl>/">`, so resolving the proxy path against it mirrors backendSrv. */
   private webSocketUrl() {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const base = `${protocol}//${window.location.host}${config.appSubUrl}`.replace(/\/$/, '');
-    return `${base}${this.url}/ws`;
+    const url = new URL(`${this.url}/ws`.replace(/^\//, ''), document.baseURI);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return url.toString();
   }
 }

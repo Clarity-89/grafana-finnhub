@@ -1,6 +1,7 @@
-import { lastValueFrom } from 'rxjs';
+import { EMPTY, lastValueFrom } from 'rxjs';
 import { DataSourceInstanceSettings, Field, FieldType } from '@grafana/data';
 import { DataSource } from './DataSource';
+import { streamTrades } from './streamTrades';
 import { legacyQuery, request } from './__mocks__/data';
 import { MyQuery } from './types';
 
@@ -9,6 +10,7 @@ jest.mock('@grafana/runtime', () => ({
   getBackendSrv: () => ({ get: mockGet }),
   getTemplateSrv: () => ({ replace: (value: string) => value }),
 }));
+jest.mock('./streamTrades', () => ({ streamTrades: jest.fn(() => EMPTY) }));
 
 // Only `url` and the DataSourceApi base fields are read; plugin meta is irrelevant here.
 const settings = {
@@ -59,5 +61,22 @@ describe('DataSource.query', () => {
 
     expect(mockGet).toHaveBeenCalledWith('test.example.com/api/stock/candle?symbol=AAPL&resolution=D', undefined);
     expect(data[0].fields[0]).toMatchObject({ name: 't', type: FieldType.time, values: [1577854800000] });
+  });
+
+  it('opens the trade stream through the proxy under the Grafana sub-path', async () => {
+    const base = document.createElement('base');
+    base.href = '/grafana/';
+    document.head.appendChild(base);
+    const ds = new DataSource({ ...settings, url: '/api/datasources/proxy/uid/finnhub' });
+    const target = { ...request.targets[0], type: 'trades' as const, symbol: 'BINANCE:BTCUSDT' };
+
+    await lastValueFrom(ds.query({ ...request, targets: [target] }));
+
+    expect(streamTrades).toHaveBeenCalledWith(
+      'ws://localhost/grafana/api/datasources/proxy/uid/finnhub/ws',
+      'BINANCE:BTCUSDT',
+      'A'
+    );
+    base.remove();
   });
 });
