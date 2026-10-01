@@ -1,0 +1,20 @@
+# Mirrors grafana/plugin-validator config/publishing.yaml (what the catalog enforces), reporting passes too.
+global:
+  enabled: true
+  severity: error
+  reportAll: true
+
+analyzers:
+  htmlreadme:
+    severity: warning
+  legacyplatform:
+    severity: warning
+  jargon:
+    severity: warning
+  restrictivedep:
+    severity: warning
+  screenshots:
+    severity: warning
+  # No Go code here: gosec exits 1 without Go packages and the validator reports that as an incomplete scan.
+  go-sec:
+    enabled: false
