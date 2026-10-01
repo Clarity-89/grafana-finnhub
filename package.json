@@ -34,8 +34,8 @@
     "@types/node": "^20.11.24",
     "@types/react": "^18.2.57",
     "@types/react-dom": "^18.2.19",
-    "@typescript-eslint/eslint-plugin": "^7.0.2",
-    "@typescript-eslint/parser": "^7.0.2",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^6.7.3",
     "eslint": "^8.57.0",
@@ -64,6 +64,8 @@
   "resolutions": {
     "flatted": "^3.4.2",
     "glob": "^10.5.0",
+    "immutable@5.1.4": "^5.1.8",
+    "js-cookie": "^3.0.7",
     "rxjs": "^7.5.1",
     "serialize-javascript": "^7.0.5",
     "tar": "^7.5.13"
