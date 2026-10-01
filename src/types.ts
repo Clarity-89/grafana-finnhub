@@ -22,15 +22,14 @@ export type QueryType =
   | 'candle'
   | 'social-sentiment';
 
-/**
- * Editor inputs a query type uses. `symbol` is the ticker picker; `search` is a plain text box
- * bound to the same persisted `symbol` field for types whose value is a search term, not a ticker.
- */
+/** Editor inputs a query type uses; each is the `MyQuery` field of the same name. */
 export type QueryInput = 'symbol' | 'search' | 'resolution' | 'metric' | 'exchange' | 'category';
 
 export interface MyQuery extends DataQuery {
   type: QueryType;
   symbol: string;
+  /** Symbol lookup term: ticker, company name, ISIN or CUSIP. */
+  search: string;
   /** Candle bar size: minutes as a number string, or D / W / M. */
   resolution: string;
   /** Metric group for the `metric` endpoint. */
@@ -50,6 +49,7 @@ export interface MyQuery extends DataQuery {
 export interface SavedQuery extends DataQuery {
   type?: QueryType | SelectableValue<string>;
   symbol?: string;
+  search?: string;
   resolution?: number | string;
   metric?: string | SelectableValue<string>;
   exchange?: string;
@@ -62,6 +62,7 @@ export interface SavedQuery extends DataQuery {
 export const defaultQuery: Omit<MyQuery, 'refId'> = {
   type: 'profile2',
   symbol: '',
+  search: '',
   resolution: '1',
   metric: 'price',
   exchange: 'US',

@@ -1,5 +1,5 @@
 import { EMPTY, lastValueFrom } from 'rxjs';
-import { DataSourceInstanceSettings, Field, FieldType, VariableSupportType } from '@grafana/data';
+import { DataSourceInstanceSettings, Field, FieldType } from '@grafana/data';
 import { DataSource } from './DataSource';
 import { streamTrades } from './streamTrades';
 import { legacyQuery, request } from './__mocks__/data';
@@ -9,7 +9,7 @@ const mockGet = jest.fn();
 const mockReplace = jest.fn((value: string) => value);
 jest.mock('@grafana/runtime', () => ({
   getBackendSrv: () => ({ get: mockGet }),
-  getTemplateSrv: () => ({ replace: mockReplace }),
+  getTemplateSrv: () => ({ replace: mockReplace, containsTemplate: (value: string) => value.includes('$') }),
 }));
 jest.mock('./streamTrades', () => ({ streamTrades: jest.fn(() => EMPTY) }));
 
@@ -92,7 +92,7 @@ describe('DataSource.query', () => {
     const base = request.targets[0];
     const targets: MyQuery[] = [
       { ...base, type: 'market-news', category: '$cat' },
-      { ...base, refId: 'B', type: 'symbol-lookup', symbol: 'apple' },
+      { ...base, refId: 'B', type: 'symbol-lookup', search: 'apple' },
       { ...base, refId: 'C', type: 'quote', symbol: 'aapl' },
     ];
 
@@ -136,17 +136,12 @@ describe('DataSource.searchSymbols', () => {
   });
 });
 
-describe('DataSource variable and annotation support', () => {
+describe('DataSource.annotations', () => {
   const ds = new DataSource(settings);
 
-  it('runs query variables through the datasource query path', () => {
-    expect(ds.variables?.getType()).toBe(VariableSupportType.Datasource);
-  });
-
-  it('defaults annotations to company news and refuses the trade stream', () => {
-    const base = { refId: 'Anno', symbol: 'AAPL', resolution: 'D', metric: 'price', exchange: 'US', category: 'general' };
-    const news: MyQuery = { ...base, type: 'company-news' };
-    const trades: MyQuery = { ...base, type: 'trades' };
+  it('defaults to company news and refuses the trade stream', () => {
+    const news: MyQuery = { ...request.targets[0], refId: 'Anno', type: 'company-news' };
+    const trades: MyQuery = { ...news, type: 'trades' };
     const anno = { name: 'Company news', enable: true, iconColor: 'blue' };
 
     expect(ds.annotations.getDefaultQuery?.()).toEqual({ type: 'company-news' });

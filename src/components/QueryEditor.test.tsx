@@ -11,7 +11,11 @@ import { MyQuery } from '../types';
 jest.mock('react-inlinesvg', () => {
   const React = jest.requireActual('react');
   return function InlineSVG({ src, title, innerRef, loader, ...rest }: Record<string, unknown>) {
-    return React.createElement('svg', { ...rest, ref: innerRef }, title ? React.createElement('title', null, title) : null);
+    return React.createElement(
+      'svg',
+      { ...rest, ref: innerRef },
+      title ? React.createElement('title', null, title) : null
+    );
   };
 });
 
@@ -25,6 +29,7 @@ const current: MyQuery = {
   refId: 'A',
   type: 'profile2',
   symbol: 'AAPL',
+  search: '',
   resolution: '1',
   metric: 'price',
   exchange: 'US',
@@ -123,27 +128,42 @@ describe('QueryEditor', () => {
     expect(onChange).toHaveBeenLastCalledWith({ ...current, symbol: 'zz' });
   });
 
-  it('shows the inputs and description of the chosen type', async () => {
+  it('shows the inputs of the chosen type and runs the query only once they are filled', async () => {
     const user = userEvent.setup();
-    render(<Harness initial={current} onChange={jest.fn()} />);
+    const onChange = jest.fn();
+    const onRunQuery = jest.fn();
+    render(<Harness initial={current} onChange={onChange} onRunQuery={onRunQuery} />);
 
     await pickType(user, 'Market news');
     expect(screen.getByLabelText('Category')).toHaveValue('general');
     expect(screen.queryByLabelText('Symbol')).toBeNull();
     expect(screen.getByText('Latest headlines; ignores the dashboard time range.')).toBeInTheDocument();
+    expect(onRunQuery).toHaveBeenCalledTimes(1);
 
     await pickType(user, 'Market status');
     expect(screen.getByLabelText('Exchange')).toHaveValue('US');
+    expect(onRunQuery).toHaveBeenCalledTimes(2);
 
+    // The search term is still empty, so the switch waits for it.
     await pickType(user, 'Symbol lookup');
-    expect(screen.getByLabelText('Search')).toHaveValue('AAPL');
+    expect(screen.getByLabelText('Search')).toHaveValue('');
     expect(screen.queryByLabelText('Symbol')).toBeNull();
+    expect(onRunQuery).toHaveBeenCalledTimes(2);
+
+    await user.type(screen.getByLabelText('Search'), 'apple{Enter}');
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ type: 'symbol-lookup', symbol: 'AAPL', search: 'apple' })
+    );
+    expect(onRunQuery).toHaveBeenCalledTimes(3);
   });
 
-  it('shows the resolution picker only for candles, with the saved value selected', async () => {
+  it('shows the resolution picker only for candles and runs the query when the type changes', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
-    render(<Harness initial={{ ...current, type: 'candle', resolution: 'D' }} onChange={onChange} />);
+    const onRunQuery = jest.fn();
+    render(
+      <Harness initial={{ ...current, type: 'candle', resolution: 'D' }} onChange={onChange} onRunQuery={onRunQuery} />
+    );
 
     expect(typeInput()).toHaveValue('Candle');
     expect(screen.getByLabelText('Resolution')).toHaveValue('Day');
@@ -151,6 +171,7 @@ describe('QueryEditor', () => {
     await pickType(user, 'Quote');
 
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'quote' }));
+    expect(onRunQuery).toHaveBeenCalledTimes(1);
     expect(typeInput()).toHaveValue('Quote');
     expect(screen.queryByLabelText('Resolution')).toBeNull();
   });

@@ -8,10 +8,15 @@ import { MyDataSourceOptions, MyQuery, QueryInput, QueryType } from '../types';
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 // Object.keys loses the key union; the registry is declared over exactly QueryType.
-const typeOptions: Array<ComboboxOption<QueryType>> = (Object.keys(queryTypes) as QueryType[]).map((value) => {
-  const { label, premium }: QueryTypeDef = queryTypes[value];
-  return { value, label, group: premium ? 'Premium' : 'Free' };
-});
+const typeKeys = Object.keys(queryTypes) as QueryType[];
+const defOf = (type: QueryType): QueryTypeDef => queryTypes[type];
+
+// Combobox orders groups by first appearance, so every free type is listed before the premium ones.
+const typeOptions: Array<ComboboxOption<QueryType>> = [false, true].flatMap((premium) =>
+  typeKeys
+    .filter((value) => Boolean(defOf(value).premium) === premium)
+    .map((value) => ({ value, label: defOf(value).label, group: premium ? 'Premium' : 'Free' }))
+);
 
 const metricOptions: ComboboxOption[] = [
   'price',
@@ -45,10 +50,15 @@ const searchOptions = async (datasource: DataSource, text: string): Promise<Comb
 
 export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: Props) => {
   const query = normalizeQuery(saved);
-  const def: QueryTypeDef = queryTypes[query.type];
+  const def = defOf(query.type);
   const has = (input: QueryInput) => def.inputs.includes(input);
   const isRest = 'path' in def;
   const update = (patch: Partial<MyQuery>) => onChange({ ...query, ...patch });
+  /** Selections apply at once; text inputs wait for Enter. */
+  const commit = (patch: Partial<MyQuery>) => {
+    update(patch);
+    onRunQuery();
+  };
   const runOnEnter = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {
       onRunQuery();
@@ -62,7 +72,11 @@ export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: 
           id="finnhub-type"
           options={typeOptions}
           value={query.type}
-          onChange={(option) => update({ type: option.value })}
+          onChange={(option) => {
+            // A type whose input is still empty waits for the user to type it.
+            const filled = defOf(option.value).inputs.every((input) => query[input] !== '');
+            (filled ? commit : update)({ type: option.value });
+          }}
         />
       </Field>
       {has('symbol') && (
@@ -74,10 +88,7 @@ export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: 
             placeholder="Ticker or company name"
             options={(text) => searchOptions(datasource, text)}
             value={query.symbol ? { value: query.symbol, label: query.symbol } : null}
-            onChange={(option) => {
-              update({ symbol: option?.value ?? '' });
-              onRunQuery();
-            }}
+            onChange={(option) => commit({ symbol: option?.value ?? '' })}
           />
         </Field>
       )}
@@ -85,9 +96,9 @@ export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: 
         <Field label="Search">
           <Input
             id="finnhub-search"
-            value={query.symbol}
+            value={query.search}
             placeholder="Ticker, company name, ISIN or CUSIP"
-            onChange={(event: ChangeEvent<HTMLInputElement>) => update({ symbol: event.target.value })}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => update({ search: event.target.value })}
             onKeyDown={runOnEnter}
           />
         </Field>
@@ -98,10 +109,7 @@ export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: 
             id="finnhub-resolution"
             options={resolutionOptions}
             value={query.resolution}
-            onChange={(option) => {
-              update({ resolution: option.value });
-              onRunQuery();
-            }}
+            onChange={(option) => commit({ resolution: option.value })}
           />
         </Field>
       )}
@@ -111,10 +119,7 @@ export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: 
             id="finnhub-metric"
             options={metricOptions}
             value={query.metric}
-            onChange={(option) => {
-              update({ metric: option.value });
-              onRunQuery();
-            }}
+            onChange={(option) => commit({ metric: option.value })}
           />
         </Field>
       )}
@@ -135,10 +140,7 @@ export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: 
             id="finnhub-category"
             options={categoryOptions}
             value={query.category}
-            onChange={(option) => {
-              update({ category: option.value });
-              onRunQuery();
-            }}
+            onChange={(option) => commit({ category: option.value })}
           />
         </Field>
       )}

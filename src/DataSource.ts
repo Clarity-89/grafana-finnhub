@@ -12,7 +12,7 @@ import {
 } from '@grafana/data';
 import { getBackendSrv, getTemplateSrv, isFetchError } from '@grafana/runtime';
 import { genericFrames } from './frames';
-import { normalizeQuery, QueryParams, QueryTypeDef, queryTypes, RestQueryType } from './queryTypes';
+import { isStream, normalizeQuery, QueryParams, QueryTypeDef, queryTypes, RestQueryType } from './queryTypes';
 import { streamTrades } from './streamTrades';
 import { MyDataSourceOptions, MyQuery } from './types';
 
@@ -28,10 +28,10 @@ class FinnhubVariables extends DataSourceVariableSupport<DataSource> {}
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   readonly url?: string;
 
-  /** Standard Grafana annotation processing over our frames; the live trade stream is not an annotation source. */
+  /** Standard Grafana annotation processing over our frames. */
   annotations: AnnotationSupport<MyQuery> = {
     getDefaultQuery: () => ({ type: 'company-news' }),
-    prepareQuery: (anno) => (anno.target?.type === 'trades' ? undefined : anno.target),
+    prepareQuery: (anno) => (anno.target && !isStream(normalizeQuery(anno.target)) ? anno.target : undefined),
   };
 
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
@@ -71,23 +71,20 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   /** Finnhub symbol search. Blank text and template expressions are not looked up; request failures propagate so the picker can show them. */
   async searchSymbols(text: string): Promise<SymbolMatch[]> {
     const q = text.trim();
-    if (!q || q.includes('$')) {
+    if (!q || getTemplateSrv().containsTemplate(q)) {
       return [];
     }
-    const { result } = await this.get<{ result?: unknown }>('search', { q });
-    // Trusted like every other Finnhub shape here.
-    return Array.isArray(result) ? (result as SymbolMatch[]) : [];
+    const { result } = await this.get<{ result?: SymbolMatch[] }>('search', { q });
+    return result ?? [];
   }
 
   private interpolate(target: MyQuery, scopedVars: ScopedVars): MyQuery {
     const query = normalizeQuery(target);
     const replace = (value: string) => getTemplateSrv().replace(value, scopedVars);
-    const symbol = replace(query.symbol);
-    const def: QueryTypeDef = queryTypes[query.type];
     return {
       ...query,
-      // A symbol-lookup search term keeps its case; tickers are upper-cased.
-      symbol: def.inputs.includes('symbol') ? symbol.toUpperCase() : symbol,
+      symbol: replace(query.symbol).toUpperCase(),
+      search: replace(query.search),
       exchange: replace(query.exchange),
       category: replace(query.category),
     };
