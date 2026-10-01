@@ -1,20 +1,25 @@
-## 0.8.0
+## 1.0.0
 
-- Require Grafana 12.4 or later (0.7.0 also failed to load on 10.0.x, which lacks `createDataFrame`)
-- Replace deprecated `Select` with `Combobox` in the query editor
-- Build the trades frame with `createDataFrame` instead of the deprecated `CircularDataFrame`
-- Take `DataQuery` from `@grafana/schema`; the `@grafana/data` alias is deprecated
+- Require Grafana 12.4 or later
+- Add the free endpoints: recommendation trends, company news, market news, SEC filings, insider sentiment, insider transactions, earnings calendar, IPO calendar, market holidays, market status, symbol lookup and peers
+- Annotations: company news, filings and calendars can mark any dashboard panel (news carries headline, summary and source tag)
+- Query variables: fill `$symbol`-style variables from the data source, for example peers of the selected symbol
+- The Symbol field searches Finnhub as you type; custom values such as `$symbol` still work, and clearing it queries the whole market where supported
+- A Run query button in the query editor; selections run at once and text inputs also run on Enter
+- The Data type menu groups entries as Free and Premium and shows Finnhub's limits for the selected type
+- Add `exchange` (market status, holidays) and `category` (market news) query fields
+- Date-only values and timezone-free timestamps are read as UTC, so points land identically in every browser. Earnings and social sentiment points shift by the browser's UTC offset compared with 0.7
+- List endpoints keep their typed columns when Finnhub returns nothing or only nulls
+- Replace the sample dashboard with one covering every query type, a company news annotation and `symbol` / `peer` variables
+- Queries now store plain values for type, metric and resolution. Existing dashboards keep working and migrate on their next edit
+- Free text queries always use the generic response shape, regardless of the selected data type
 - Fix: keep every trade in a websocket message instead of only the first
-- Fix: trades panels no longer report "Data outside time range" seconds after starting; packets are marked as streaming
+- Fix: trades panels no longer report "Data outside time range" seconds after starting
 - Fix: label candle series (Opening price, High price, ...) instead of `o`, `h`, `l`, `c`, `v`
 - Fix: pre-select the default candle resolution in the query editor
 - Fix: stop sending the panel `refId` to Finnhub as a query parameter
 - Fix: mark social sentiment as premium alongside candles
 - Fix: show the proxy or Finnhub error message when testing the data source
-- Queries now store plain values for type, metric and resolution. Existing dashboards keep working and migrate on their next edit
-- Free text queries always use the generic response shaper, regardless of the selected data type
-- Replace the sample dashboard with one covering every query type and a `$symbol` variable
-- Remove unused dependencies; the bundle no longer ships `lodash.capitalize`
 
 ## 0.7.0
 

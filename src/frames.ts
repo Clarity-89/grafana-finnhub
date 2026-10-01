@@ -1,6 +1,50 @@
-import { createDataFrame, DataFrame, dateTime, FieldType } from '@grafana/data';
+import { createDataFrame, DataFrame, FieldType, QueryResultMeta, toUtc } from '@grafana/data';
 
-type Row = Record<string, string | number>;
+export type Row = Record<string, string | number | boolean | null>;
+type ColumnType = FieldType.string | FieldType.number | FieldType.boolean;
+
+interface Column {
+  key: string;
+  type: ColumnType;
+  name?: string;
+}
+
+interface TimeColumn {
+  name: string;
+  /** Milliseconds for a row; NaN when the row carries no usable time. */
+  ms: (row: Row) => number;
+}
+
+export interface RowsSpec {
+  time?: TimeColumn;
+  columns: Column[];
+  meta?: QueryResultMeta;
+}
+
+export const graphMeta: QueryResultMeta = { preferredVisualisationType: 'graph' };
+export const tableMeta: QueryResultMeta = { preferredVisualisationType: 'table' };
+
+export const num = (...keys: string[]): Column[] => keys.map((key) => ({ key, type: FieldType.number }));
+export const str = (...keys: string[]): Column[] => keys.map((key) => ({ key, type: FieldType.string }));
+
+/**
+ * Finnhub's timezone-free dates and timestamps are read as UTC so every browser places them identically.
+ * Anything else is NaN: `toUtc(undefined)` would silently mean "now".
+ */
+export const utcMs = (value: unknown) =>
+  typeof value === 'string' || typeof value === 'number' ? toUtc(value).valueOf() : NaN;
+
+/** Time column read from a `YYYY-MM-DD` or `YYYY-MM-DD HH:mm:ss` value. */
+export const utcDate = (key: string, name = key): TimeColumn => ({ name, ms: (row) => utcMs(row[key]) });
+
+/** Time column read from unix seconds. */
+export const unixSeconds = (key: string, name = key): TimeColumn => ({
+  name,
+  ms: (row) => {
+    const seconds = row[key];
+    return typeof seconds === 'number' ? seconds * 1000 : NaN;
+  },
+});
 
 const noData = (refId: string) => createDataFrame({ refId, fields: [] });
 
@@ -18,13 +62,34 @@ const fieldTypeOf = (value: unknown): FieldType => {
   }
 };
 
-/** One field per key from row objects; `timeKey` holds an ISO date. */
-const columns = (rows: Row[], keys: string[], timeKey: string, name: (key: string) => string = (key) => key) =>
-  keys.map((key) =>
-    key === timeKey
-      ? { name: name(key), type: FieldType.time, values: rows.map((row) => dateTime(row[key]).valueOf()) }
-      : { name: name(key), type: FieldType.number, values: rows.map((row) => row[key]) }
-  );
+/**
+ * Typed frame from row objects. Column types are declared, not inferred, so an all-null column keeps its type and
+ * empty input keeps every field. A row without a usable time cannot be placed on a graph, so it is dropped.
+ */
+export function rowsFrame(rows: Row[], refId: string, { time, columns, meta }: RowsSpec): DataFrame {
+  const kept = time ? rows.filter((row) => Number.isFinite(time.ms(row))) : rows;
+  return createDataFrame({
+    refId,
+    meta,
+    fields: [
+      ...(time ? [{ name: time.name, type: FieldType.time, values: kept.map(time.ms) }] : []),
+      ...columns.map(({ key, type, name }) => ({
+        name: name ?? key,
+        type,
+        values: kept.map((row) => row[key] ?? null),
+      })),
+    ],
+  });
+}
+
+/** Registry adapter: one typed frame from the rows `pick` extracts from the response. */
+export const rows =
+  <T>(spec: RowsSpec, pick: (data: T) => Row[] | undefined) =>
+  (data: T, refId: string): DataFrame[] =>
+    [rowsFrame(pick(data) ?? [], refId, spec)];
+
+/** Picker for responses that are the row list itself. */
+export const list = (data: Row[] | undefined) => data;
 
 /** Single-row table from a flat object: profile2, metric. */
 export function tableFrame(data: Record<string, unknown> | undefined, refId: string): DataFrame[] {
@@ -34,7 +99,7 @@ export function tableFrame(data: Record<string, unknown> | undefined, refId: str
   return [
     createDataFrame({
       refId,
-      meta: { preferredVisualisationType: 'table' },
+      meta: tableMeta,
       fields: Object.entries(data).map(([name, value]) => ({ name, type: fieldTypeOf(value), values: [value] })),
     }),
   ];
@@ -51,31 +116,11 @@ export function quoteFrame(data: Quote, refId: string): DataFrame[] {
   return [
     createDataFrame({
       refId,
-      meta: { preferredVisualisationType: 'table' },
+      meta: tableMeta,
       fields: [
         { name: 'time', type: FieldType.time, values: [data.t * 1000] },
         { name: 'current price', type: FieldType.number, values: [data.c] },
       ],
-    }),
-  ];
-}
-
-interface Earning extends Row {
-  /** ISO date of the reported quarter */
-  period: string;
-  symbol: string;
-}
-
-export function earningsFrame(data: Earning[], refId: string): DataFrame[] {
-  if (!data?.length) {
-    return [noData(refId)];
-  }
-  const keys = Object.keys(data[0]).filter((key) => key !== 'symbol');
-  return [
-    createDataFrame({
-      refId,
-      meta: { preferredVisualisationType: 'graph' },
-      fields: columns(data, keys, 'period'),
     }),
   ];
 }
@@ -106,7 +151,7 @@ export function candleFrame(data: Candles, refId: string): DataFrame[] {
   return [
     createDataFrame({
       refId,
-      meta: { preferredVisualisationType: 'graph' },
+      meta: graphMeta,
       fields: [
         {
           name: 't',
@@ -135,11 +180,14 @@ export function sentimentFrames(data: Record<string, SentimentPoint[] | string>,
   const networks = Object.entries(data).filter(
     (entry): entry is [string, SentimentPoint[]] => Array.isArray(entry[1]) && entry[1].length > 0
   );
+  // Keys stay discovered: Finnhub's sentiment metrics are all numeric and the per-network shape is open.
   return networks.map(([network, points]) =>
-    createDataFrame({
-      refId,
-      meta: { preferredVisualisationType: 'graph' },
-      fields: columns(points, Object.keys(points[0]), 'atTime', (key) => `${key}-${network}`),
+    rowsFrame(points, refId, {
+      time: utcDate('atTime', `atTime-${network}`),
+      columns: Object.keys(points[0])
+        .filter((key) => key !== 'atTime')
+        .map((key) => ({ key, type: FieldType.number, name: `${key}-${network}` })),
+      meta: graphMeta,
     })
   );
 }

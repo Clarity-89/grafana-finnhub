@@ -3,6 +3,7 @@
   "name": "Finnhub",
   "id": "clarity89-finnhub-datasource",
   "metrics": true,
+  "annotations": true,
   "streaming": true,
   "info": {
     "description": "Finnhub Data Source",

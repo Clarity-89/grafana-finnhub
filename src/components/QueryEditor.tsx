@@ -1,17 +1,22 @@
 import React, { ChangeEvent, KeyboardEvent } from 'react';
-import { Combobox, ComboboxOption, Field, Input } from '@grafana/ui';
+import { Button, Combobox, ComboboxOption, Field, Input } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { normalizeQuery, QueryTypeDef, queryTypes } from '../queryTypes';
-import { MyDataSourceOptions, MyQuery, QueryType } from '../types';
+import { MyDataSourceOptions, MyQuery, QueryInput, QueryType } from '../types';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 // Object.keys loses the key union; the registry is declared over exactly QueryType.
-const typeOptions: Array<ComboboxOption<QueryType>> = (Object.keys(queryTypes) as QueryType[]).map((value) => {
-  const { label, premium }: QueryTypeDef = queryTypes[value];
-  return { value, label: premium ? `${label} (Premium)` : label };
-});
+const typeKeys = Object.keys(queryTypes) as QueryType[];
+const defOf = (type: QueryType): QueryTypeDef => queryTypes[type];
+
+// Combobox orders groups by first appearance, so every free type is listed before the premium ones.
+const typeOptions: Array<ComboboxOption<QueryType>> = [false, true].flatMap((premium) =>
+  typeKeys
+    .filter((value) => Boolean(defOf(value).premium) === premium)
+    .map((value) => ({ value, label: defOf(value).label, group: premium ? 'Premium' : 'Free' }))
+);
 
 const metricOptions: ComboboxOption[] = [
   'price',
@@ -34,9 +39,26 @@ const resolutionOptions: ComboboxOption[] = [
   { value: 'M', label: 'Month' },
 ];
 
-export const QueryEditor = ({ onChange, onRunQuery, query: saved }: Props) => {
+const categoryOptions: ComboboxOption[] = ['general', 'forex', 'crypto', 'merger'].map((value) => ({ value }));
+
+const searchOptions = async (datasource: DataSource, text: string): Promise<ComboboxOption[]> =>
+  (await datasource.searchSymbols(text)).map(({ symbol, displaySymbol, description }) => ({
+    value: symbol,
+    label: displaySymbol,
+    description,
+  }));
+
+export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: Props) => {
   const query = normalizeQuery(saved);
+  const def = defOf(query.type);
+  const has = (input: QueryInput) => def.inputs.includes(input);
+  const isRest = 'path' in def;
   const update = (patch: Partial<MyQuery>) => onChange({ ...query, ...patch });
+  /** Selections apply at once; text inputs wait for Enter or the Run query button. */
+  const commit = (patch: Partial<MyQuery>) => {
+    update(patch);
+    onRunQuery();
+  };
   const runOnEnter = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {
       onRunQuery();
@@ -45,44 +67,84 @@ export const QueryEditor = ({ onChange, onRunQuery, query: saved }: Props) => {
 
   return (
     <>
-      <Field label="Data type">
+      <Field label="Data type" description={def.description}>
         <Combobox
           id="finnhub-type"
           options={typeOptions}
           value={query.type}
-          onChange={(option) => update({ type: option.value })}
+          onChange={(option) => {
+            // A type whose input is still empty waits for the user to type it.
+            const filled = defOf(option.value).inputs.every((input) => query[input] !== '');
+            (filled ? commit : update)({ type: option.value });
+          }}
         />
       </Field>
-      <Field label="Symbol">
-        <Input
-          id="finnhub-symbol"
-          value={query.symbol}
-          placeholder="Stock symbol"
-          onChange={(event: ChangeEvent<HTMLInputElement>) => update({ symbol: event.target.value })}
-          onKeyDown={runOnEnter}
-        />
-      </Field>
-      {query.type === 'candle' && (
+      {has('symbol') && (
+        <Field label="Symbol">
+          <Combobox
+            id="finnhub-symbol"
+            isClearable
+            createCustomValue
+            placeholder="Ticker or company name"
+            options={(text) => searchOptions(datasource, text)}
+            value={query.symbol ? { value: query.symbol, label: query.symbol } : null}
+            onChange={(option) => commit({ symbol: option?.value ?? '' })}
+          />
+        </Field>
+      )}
+      {has('search') && (
+        <Field label="Search">
+          <Input
+            id="finnhub-search"
+            value={query.search}
+            placeholder="Ticker, company name, ISIN or CUSIP"
+            onChange={(event: ChangeEvent<HTMLInputElement>) => update({ search: event.target.value })}
+            onKeyDown={runOnEnter}
+          />
+        </Field>
+      )}
+      {has('resolution') && (
         <Field label="Resolution">
           <Combobox
             id="finnhub-resolution"
             options={resolutionOptions}
             value={query.resolution}
-            onChange={(option) => update({ resolution: option.value })}
+            onChange={(option) => commit({ resolution: option.value })}
           />
         </Field>
       )}
-      {query.type === 'metric' && (
+      {has('metric') && (
         <Field label="Metric">
           <Combobox
             id="finnhub-metric"
             options={metricOptions}
             value={query.metric}
-            onChange={(option) => update({ metric: option.value })}
+            onChange={(option) => commit({ metric: option.value })}
           />
         </Field>
       )}
-      {query.type !== 'trades' && (
+      {has('exchange') && (
+        <Field label="Exchange">
+          <Input
+            id="finnhub-exchange"
+            value={query.exchange}
+            placeholder="Exchange code, e.g. US"
+            onChange={(event: ChangeEvent<HTMLInputElement>) => update({ exchange: event.target.value })}
+            onKeyDown={runOnEnter}
+          />
+        </Field>
+      )}
+      {has('category') && (
+        <Field label="Category">
+          <Combobox
+            id="finnhub-category"
+            options={categoryOptions}
+            value={query.category}
+            onChange={(option) => commit({ category: option.value })}
+          />
+        </Field>
+      )}
+      {isRest && (
         <Field label="Free Query Text" description="Experimental. Will override any selected values above.">
           <Input
             id="finnhub-query-text"
@@ -93,6 +155,9 @@ export const QueryEditor = ({ onChange, onRunQuery, query: saved }: Props) => {
           />
         </Field>
       )}
+      <Button variant="primary" icon="play" onClick={() => onRunQuery()}>
+        Run query
+      </Button>
     </>
   );
 };
