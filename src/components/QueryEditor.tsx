@@ -1,5 +1,5 @@
 import React, { ChangeEvent, KeyboardEvent } from 'react';
-import { Combobox, ComboboxOption, Field, Input } from '@grafana/ui';
+import { Button, Combobox, ComboboxOption, Field, Input } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { normalizeQuery, QueryTypeDef, queryTypes } from '../queryTypes';
@@ -54,7 +54,7 @@ export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: 
   const has = (input: QueryInput) => def.inputs.includes(input);
   const isRest = 'path' in def;
   const update = (patch: Partial<MyQuery>) => onChange({ ...query, ...patch });
-  /** Selections apply at once; text inputs wait for Enter. */
+  /** Selections apply at once; text inputs wait for Enter or the Run query button. */
   const commit = (patch: Partial<MyQuery>) => {
     update(patch);
     onRunQuery();
@@ -155,6 +155,9 @@ export const QueryEditor = ({ datasource, onChange, onRunQuery, query: saved }: 
           />
         </Field>
       )}
+      <Button variant="primary" icon="play" onClick={() => onRunQuery()}>
+        Run query
+      </Button>
     </>
   );
 };

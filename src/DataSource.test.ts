@@ -34,7 +34,7 @@ describe('DataSource.query', () => {
   it('requests one endpoint per visible target with interpolated params only', async () => {
     mockGet.mockResolvedValue({});
     const ds = new DataSource(settings);
-    // Old dashboards hold the pre-0.8 shape at runtime; the prop type is the current model.
+    // Old dashboards hold the pre-1.0 shape at runtime; the prop type is the current model.
     const targets = [legacyQuery as MyQuery, { ...request.targets[0], refId: 'B', hide: true }];
 
     await lastValueFrom(ds.query({ ...request, targets }));

@@ -18,7 +18,7 @@ const query: MyQuery = {
 };
 
 describe('normalizeQuery', () => {
-  it('converts pre-0.8 Select options to plain values and drops unused fields', () => {
+  it('converts pre-1.0 Select options to plain values and drops unused fields', () => {
     expect(normalizeQuery(legacyQuery)).toEqual({
       refId: 'A',
       symbol: 'aapl',

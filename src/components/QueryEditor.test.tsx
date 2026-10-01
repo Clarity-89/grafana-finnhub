@@ -73,7 +73,7 @@ const pickType = async (user: UserEvent, label: string) => {
 describe('QueryEditor', () => {
   beforeEach(() => searchSymbols.mockClear());
 
-  it('renders a pre-0.8 query and writes back the current shape when a symbol is picked', async () => {
+  it('renders a pre-1.0 query and writes back the current shape when a symbol is picked', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
@@ -155,6 +155,9 @@ describe('QueryEditor', () => {
       expect.objectContaining({ type: 'symbol-lookup', symbol: 'AAPL', search: 'apple' })
     );
     expect(onRunQuery).toHaveBeenCalledTimes(3);
+
+    await user.click(screen.getByRole('button', { name: 'Run query' }));
+    expect(onRunQuery).toHaveBeenCalledTimes(4);
   });
 
   it('shows the resolution picker only for candles and runs the query when the type changes', async () => {

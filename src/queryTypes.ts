@@ -276,7 +276,7 @@ export const isQueryType = (value: unknown): value is QueryType => typeof value 
 const plain = (value: string | SelectableValue<string> | undefined) =>
   typeof value === 'object' ? value.value : value;
 
-/** Fills defaults and converts queries persisted by versions before 0.8 to the current shape. */
+/** Fills defaults and converts queries persisted by versions before 1.0 to the current shape. */
 export function normalizeQuery({ format, count, ...saved }: SavedQuery): MyQuery {
   const type = plain(saved.type);
   return {

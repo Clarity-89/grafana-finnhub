@@ -43,7 +43,7 @@ export interface MyQuery extends DataQuery {
 }
 
 /**
- * Any shape the plugin has ever persisted. Versions before 0.8 stored Select options
+ * Any shape the plugin has ever persisted. Versions before 1.0 stored Select options
  * instead of plain values and carried fields nothing read.
  */
 export interface SavedQuery extends DataQuery {

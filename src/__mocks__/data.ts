@@ -28,7 +28,7 @@ export const request: DataQueryRequest<MyQuery> = {
   startTime: 1584015969943,
 };
 
-/** Shape written by plugin versions before 0.8. */
+/** Shape written by plugin versions before 1.0. */
 export const legacyQuery: SavedQuery = {
   refId: 'A',
   symbol: 'aapl',
