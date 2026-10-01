@@ -10,6 +10,7 @@
 - Fix: show the proxy or Finnhub error message when testing the data source
 - Queries now store plain values for type, metric and resolution. Existing dashboards keep working and migrate on their next edit
 - Free text queries always use the generic response shaper, regardless of the selected data type
+- Replace the sample dashboard with one covering every query type and a `$symbol` variable
 - Remove unused dependencies; the bundle no longer ships `lodash.capitalize`
 
 ## 0.7.0
