@@ -255,7 +255,7 @@
       "id": 4,
       "type": "timeseries",
       "title": "$stream live trades (websocket)",
-      "description": "Streams from Finnhub; crypto symbols trade around the clock.",
+      "description": "Streams from Finnhub; crypto symbols trade around the clock. Keeps the last 1000 trades.",
       "gridPos": {
         "x": 12,
         "y": 6,
@@ -266,7 +266,7 @@
         "type": "clarity89-finnhub-datasource",
         "uid": "${DS_FINNHUB}"
       },
-      "timeFrom": "5m",
+      "timeFrom": "1m",
       "targets": [
         {
           "refId": "A",
@@ -289,7 +289,8 @@
             "lineInterpolation": "stepAfter",
             "lineWidth": 1,
             "showPoints": "never"
-          }
+          },
+          "decimals": 2
         },
         "overrides": []
       },

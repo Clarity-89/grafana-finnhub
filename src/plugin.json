@@ -24,7 +24,11 @@
         "url": "https://github.com/Clarity-89/grafana-finnhub/blob/master/LICENSE"
       }
     ],
-    "screenshots": [],
+    "screenshots": [
+      { "name": "Stock dashboard", "path": "img/screenshot-dashboard.png" },
+      { "name": "Query editor", "path": "img/screenshot-query-editor.png" },
+      { "name": "Live trades over websocket", "path": "img/screenshot-live-trades.png" }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
