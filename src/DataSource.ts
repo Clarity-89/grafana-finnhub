@@ -1,312 +1,75 @@
 import { from, merge, Observable } from 'rxjs';
 import {
-  CircularDataFrame,
-  createDataFrame,
   DataFrame,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
-  dateTime,
-  FieldType,
+  ScopedVars,
   TimeRange,
 } from '@grafana/data';
-import { config, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { CandleQuery, defaultQuery, MyDataSourceOptions, MyQuery, QueryParams, TargetType } from './types';
-import { ensureArray, getTargetType } from './utils';
-import { candleFields } from './constants';
-
-export const convertToWebSocketUrl = (url: string) => {
-  const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-  let backend = `${protocol}${window.location.host}${config.appSubUrl}`;
-  if (backend.endsWith('/')) {
-    backend = backend.slice(0, -1);
-  }
-  return `${backend}${url}`;
-};
-
-const backendSrv = getBackendSrv();
+import { getBackendSrv, getTemplateSrv, isFetchError } from '@grafana/runtime';
+import { genericFrames } from './frames';
+import { normalizeQuery, QueryParams, QueryTypeDef, queryTypes, RestQueryType } from './queryTypes';
+import { streamTrades } from './streamTrades';
+import { MyDataSourceOptions, MyQuery } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
-  dataSourceName: string;
-  url?: string;
+  readonly url?: string;
 
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
-    this.dataSourceName = instanceSettings.name;
     this.url = instanceSettings.url;
   }
 
-  constructQuery(target: Partial<MyQuery & CandleQuery>, range: TimeRange) {
-    const interpolatedSymbol = getTemplateSrv().replace(target.symbol);
-    const symbol = interpolatedSymbol?.toUpperCase();
-    const { refId } = target;
-    switch (target.type?.value) {
-      case 'candle': {
-        const { resolution } = target;
-        return { symbol, resolution, from: range.from.unix(), to: range.to.unix(), refId };
+  query(request: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
+    const streams: Array<Observable<DataQueryResponse>> = [];
+    const requests: Array<Promise<DataFrame[]>> = [];
+    for (const target of request.targets.filter((target) => !target.hide)) {
+      const query = this.interpolate(target, request.scopedVars);
+      const def: QueryTypeDef = queryTypes[query.type];
+      if ('stream' in def) {
+        streams.push(streamTrades(this.webSocketUrl(), query.symbol, query.refId));
+      } else {
+        requests.push(this.fetchFrames(query, def, request.range));
       }
-      case 'metric':
-        return { symbol, metric: target?.metric?.value, refId };
-      case 'social-sentiment':
-        return { symbol, from: range.from.format('YYYY-MM-DD'), to: range.to.format('YYYY-MM-DD'), refId };
-      default:
-        return {
-          symbol,
-          refId,
-        };
     }
-  }
-
-  query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
-    const { targets, range } = options;
-    const visibleTargets = targets.filter((target) => !target.hide);
-    const streams = visibleTargets
-      .filter((target) => target.type?.value === 'trades')
-      .map((target) => {
-        const targetWithDefaults = { ...defaultQuery, ...target };
-        const query = this.constructQuery(targetWithDefaults, range as TimeRange);
-        return new Observable<DataQueryResponse>((subscriber) => {
-          const frame = new CircularDataFrame({
-            append: 'tail',
-            capacity: 1000,
-          });
-
-          frame.refId = query.refId;
-          frame.addField({ name: 'ts', type: FieldType.time });
-          frame.addField({ name: 'value', type: FieldType.number });
-
-          const url = convertToWebSocketUrl(this.url + '/ws');
-          const socket = new WebSocket(url);
-          socket.onopen = () => socket.send(JSON.stringify({ type: 'subscribe', symbol: query.symbol }));
-          socket.onerror = () => subscriber.error(new Error('WebSocket error'));
-          socket.onclose = () => subscriber.complete();
-          socket.onmessage = (event: MessageEvent) => {
-            try {
-              const data = JSON.parse(event.data);
-              if (data.type === 'trade') {
-                const { t, p } = data.data[0];
-                frame.add({ ts: t, value: p });
-
-                subscriber.next({
-                  data: [frame],
-                  key: query.refId,
-                });
-              }
-            } catch (e) {
-              subscriber.error(e);
-            }
-          };
-
-          return () => {
-            socket.send(JSON.stringify({ type: 'unsubscribe', symbol: query.symbol }));
-            socket.close();
-          };
-        });
-      });
-    const promises = visibleTargets
-      .filter((target) => target.type?.value !== 'trades')
-      .map((target) => {
-        const targetWithDefaults = { ...defaultQuery, ...target };
-        let request;
-        const { queryText, type } = targetWithDefaults;
-        // Ignore other query params if there's a free text query
-        if (queryText) {
-          request = this.freeTextQuery(queryText);
-        } else {
-          const query = this.constructQuery({ ...defaultQuery, ...target }, range as TimeRange);
-          request = this.get(type.value, query);
-        }
-
-        // Combine received data and its target
-        return request.then((data) => {
-          const isTable = getTargetType(type) === TargetType.Table;
-          if (data.metric) {
-            data = data.metric;
-          }
-          return isTable ? this.tableResponse(data, target) : this.tsResponse(data, target);
-        });
-      });
-
-    const observable = from(Promise.all(promises).then((data) => ({ data: data.flat() })));
-    return merge(...streams, observable);
-  }
-
-  tableResponse = (data: any, target: MyQuery): DataFrame[] => {
-    // Empty data frame
-    if (!data || data.s === 'no_data') {
-      return [
-        createDataFrame({
-          refId: target.refId,
-          fields: [
-            {
-              name: 'no data',
-              type: FieldType.string,
-              values: [],
-            },
-          ],
-          meta: {
-            preferredVisualisationType: 'table',
-          },
-        }),
-      ];
-    }
-
-    return [
-      createDataFrame({
-        refId: target.refId,
-        fields: Object.entries(data).map(([key, val]) => ({
-          name: key,
-          type: typeof val === 'string' ? FieldType.string : FieldType.number,
-          values: [val],
-        })),
-        meta: {
-          preferredVisualisationType: 'table',
-        },
-      }),
-    ];
-  };
-
-  // Timeseries response
-  tsResponse(data: any, target: MyQuery): DataFrame[] {
-    const { refId } = target;
-    const emptyDf = [
-      createDataFrame({
-        refId,
-        fields: [
-          {
-            name: 'no data',
-            type: FieldType.string,
-            values: [],
-          },
-        ],
-        meta: {
-          preferredVisualisationType: 'graph',
-        },
-      }),
-    ];
-
-    if (data?.s === 'no_data' || typeof data === 'string') {
-      return emptyDf;
-    }
-
-    switch (target.type.value) {
-      case 'earnings': {
-        const excludedFields = ['symbol'];
-        const timeKey = 'period';
-        const keys = Object.keys(data[0]).filter((key) => !excludedFields.includes(key));
-        return [
-          createDataFrame({
-            refId,
-            fields: keys.map((key) => ({
-              type: key === timeKey ? FieldType.time : FieldType.number,
-              name: key,
-              values: data.map((dp: any) => (key === timeKey ? dateTime(dp[key]).valueOf() : dp[key])),
-            })),
-            meta: {
-              preferredVisualisationType: 'graph',
-            },
-          }),
-        ];
-      }
-      case 'quote': {
-        const timeKey = 't';
-        const fields = new Map([
-          ['t', 'time'],
-          ['c', 'current price'],
-        ]);
-        return [
-          createDataFrame({
-            refId,
-            fields: [...fields].map(([key, label]) => ({
-              type: key === timeKey ? FieldType.time : FieldType.number,
-              name: label,
-              values: key === timeKey ? [data[key] * 1000] : [data[key]],
-            })),
-            meta: {
-              preferredVisualisationType: 'table',
-            },
-          }),
-        ];
-      }
-      case 'candle': {
-        const timeKey = 't';
-        return [
-          createDataFrame({
-            refId,
-            fields: [...candleFields].map(([key, label]) => {
-              return {
-                type: key === timeKey ? FieldType.time : FieldType.number,
-                name: key,
-                title: label,
-                values: key === timeKey ? data[key].map((val: number) => val * 1000) : data[key],
-              };
-            }),
-            meta: {
-              preferredVisualisationType: 'graph',
-            },
-          }),
-        ];
-      }
-      case 'social-sentiment':
-        const timeKey = 'atTime';
-        const networks = Object.keys(data).filter((key) => key !== 'symbol' && !!data[key].length);
-        return networks.map((network) => {
-          const networkData = data[network];
-          const keys = Object.keys(networkData[0]);
-          const collectedData = Object.fromEntries(keys.map((key) => [key, networkData.map((d: any) => d[key])]));
-          return createDataFrame({
-            refId,
-            fields: keys.map((key) => ({
-              type: key === timeKey ? FieldType.time : FieldType.number,
-              name: `${key}-${network}`,
-              values: collectedData[key].map((val: any) => {
-                return key === timeKey ? dateTime(val).valueOf() : val;
-              }),
-            })),
-            meta: {
-              preferredVisualisationType: 'graph',
-            },
-          });
-        });
-      default:
-        const timeKeys = ['t', 'time', 'period'];
-        return [
-          createDataFrame({
-            refId,
-            fields: Object.entries(data).map(([key, value]) => {
-              return {
-                type: timeKeys.includes(key) ? FieldType.time : (typeof value as FieldType),
-                name: key,
-                values: timeKeys.includes(key)
-                  ? ensureArray(value).map((val: number) => val * 1000)
-                  : ensureArray(value),
-              };
-            }),
-          }),
-        ];
-    }
+    return merge(...streams, from(Promise.all(requests).then((frames) => ({ data: frames.flat() }))));
   }
 
   async testDatasource() {
     try {
-      await this.get('profile2', { symbol: 'AAPL' });
+      await this.get('stock/profile2', { symbol: 'AAPL' });
       return { status: 'success', message: 'Data source is working' };
     } catch (e) {
-      return { status: 'error', message: 'Error retrieving data:', e };
+      // Grafana's proxy reports auth failures as { message }; Finnhub reports its own errors as { error }.
+      const reason = isFetchError<{ message?: string; error?: string }>(e)
+        ? e.data?.message ?? e.data?.error ?? e.statusText
+        : String(e);
+      return { status: 'error', message: `Error retrieving data: ${reason}` };
     }
   }
 
-  async freeTextQuery(query: string) {
-    try {
-      return await backendSrv.get(`${this.url}/api/${query}`);
-    } catch (e) {
-      throw e;
-    }
+  private interpolate(target: MyQuery, scopedVars: ScopedVars): MyQuery {
+    const query = normalizeQuery(target);
+    return { ...query, symbol: getTemplateSrv().replace(query.symbol, scopedVars).toUpperCase() };
   }
 
-  async get(dataType: string, params: QueryParams = {}) {
-    const url = `${this.url}/api${dataType === 'quote' ? '' : '/stock'}`;
-    return await backendSrv.get(`${url}/${dataType}`, params);
+  private async fetchFrames(query: MyQuery, def: RestQueryType, range: TimeRange): Promise<DataFrame[]> {
+    if (query.queryText) {
+      return genericFrames(await this.get(query.queryText), query.refId);
+    }
+    return def.toFrames(await this.get(def.path, def.params(query, range)), query.refId);
+  }
+
+  private get(path: string, params?: QueryParams): Promise<unknown> {
+    return getBackendSrv().get<unknown>(`${this.url}/api/${path}`, params);
+  }
+
+  /** Grafana serves under `<base href="<appSubUrl>/">`, so resolving the proxy path against it mirrors backendSrv. */
+  private webSocketUrl() {
+    const url = new URL(`${this.url}/ws`.replace(/^\//, ''), document.baseURI);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return url.toString();
   }
 }

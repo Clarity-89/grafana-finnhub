@@ -1,3 +1,21 @@
+## 0.8.0
+
+- Require Grafana 12.4 or later (0.7.0 also failed to load on 10.0.x, which lacks `createDataFrame`)
+- Replace deprecated `Select` with `Combobox` in the query editor
+- Build the trades frame with `createDataFrame` instead of the deprecated `CircularDataFrame`
+- Take `DataQuery` from `@grafana/schema`; the `@grafana/data` alias is deprecated
+- Fix: keep every trade in a websocket message instead of only the first
+- Fix: trades panels no longer report "Data outside time range" seconds after starting; packets are marked as streaming
+- Fix: label candle series (Opening price, High price, ...) instead of `o`, `h`, `l`, `c`, `v`
+- Fix: pre-select the default candle resolution in the query editor
+- Fix: stop sending the panel `refId` to Finnhub as a query parameter
+- Fix: mark social sentiment as premium alongside candles
+- Fix: show the proxy or Finnhub error message when testing the data source
+- Queries now store plain values for type, metric and resolution. Existing dashboards keep working and migrate on their next edit
+- Free text queries always use the generic response shaper, regardless of the selected data type
+- Replace the sample dashboard with one covering every query type and a `$symbol` variable
+- Remove unused dependencies; the bundle no longer ships `lodash.capitalize`
+
 ## 0.7.0
 
 - Update the plugin to be compatible with Grafana 12

@@ -3,7 +3,7 @@ import { Button, InlineField, InlineFieldRow, Input } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { MyDataSourceOptions, SecureJsonData } from '../types';
 
-interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions, SecureJsonData> {}
+type Props = DataSourcePluginOptionsEditorProps<MyDataSourceOptions, SecureJsonData>;
 
 export const ConfigEditor: FC<Props> = ({ options, onOptionsChange }) => {
   const { secureJsonData, secureJsonFields } = options;
@@ -41,7 +41,7 @@ export const ConfigEditor: FC<Props> = ({ options, onOptionsChange }) => {
         tooltip={
           <>
             Free API token can be created on{' '}
-            <a href={'https://finnhub.io/'} target={'_blank'} rel={'noreferrer nopenner'}>
+            <a href={'https://finnhub.io/'} target={'_blank'} rel={'noreferrer noopener'}>
               Finnhub website
             </a>
           </>

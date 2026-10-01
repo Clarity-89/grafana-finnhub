@@ -1,47 +1,42 @@
-import { DataQuery, DataSourceJsonData, SelectableValue } from '@grafana/data';
+import { DataSourceJsonData, SelectableValue } from '@grafana/data';
+import { DataQuery } from '@grafana/schema';
 
-export enum TargetType {
-  Timeseries = 'TIMESERIES',
-  Table = 'TABLE',
-}
+export type QueryType = 'quote' | 'earnings' | 'candle' | 'trades' | 'social-sentiment' | 'profile2' | 'metric';
+
 export interface MyQuery extends DataQuery {
-  queryText?: string;
-  symbol?: string;
-  type: SelectableValue;
-  format: TargetType;
-  metric: SelectableValue;
-  count?: number;
-  resolution?: number | string;
-}
-
-export interface CandleQuery {
+  type: QueryType;
   symbol: string;
-  count: number;
-  resolution: number | string;
+  /** Candle bar size: minutes as a number string, or D / W / M. */
+  resolution: string;
+  /** Metric group for the `metric` endpoint. */
+  metric: string;
+  /** Raw path and query string under /api/v1. Overrides every other field when set. */
+  queryText?: string;
 }
-
-export const defaultQuery: Partial<MyQuery | CandleQuery> = {
-  type: { value: 'profile2', label: 'Profile' },
-  format: TargetType.Timeseries,
-  count: 1000,
-  resolution: 1,
-  symbol: '',
-  metric: { value: 'price', label: 'price' },
-};
 
 /**
- * These are options configured for each DataSource instance
+ * Any shape the plugin has ever persisted. Versions before 0.8 stored Select options
+ * instead of plain values and carried fields nothing read.
  */
-export interface MyDataSourceOptions extends DataSourceJsonData {
-  path?: string;
+export interface SavedQuery extends DataQuery {
+  type?: QueryType | SelectableValue<string>;
+  symbol?: string;
+  resolution?: number | string;
+  metric?: string | SelectableValue<string>;
+  queryText?: string;
+  format?: string;
+  count?: number;
 }
+
+export const defaultQuery: Omit<MyQuery, 'refId'> = {
+  type: 'profile2',
+  symbol: '',
+  resolution: '1',
+  metric: 'price',
+};
+
+export type MyDataSourceOptions = DataSourceJsonData;
 
 export interface SecureJsonData {
   apiToken?: string;
-}
-
-export interface QueryParams {
-  symbol?: string;
-  limit?: number;
-  [key: string]: any;
 }

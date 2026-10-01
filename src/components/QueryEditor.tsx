@@ -1,114 +1,98 @@
-import React, { ChangeEvent, FC } from 'react';
-import capitalize from 'lodash.capitalize';
-import { Field, Input, Select } from '@grafana/ui';
-import { QueryEditorProps, SelectableValue } from '@grafana/data';
+import React, { ChangeEvent, KeyboardEvent } from 'react';
+import { Combobox, ComboboxOption, Field, Input } from '@grafana/ui';
+import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../DataSource';
-import { defaultQuery, MyDataSourceOptions, MyQuery } from '../types';
-import { PREMIUM_QUERIES, stockMetrics, TABLE_QUERY_TYPES, TIMESERIES_QUERY_TYPES } from '../constants';
-import { getTargetType } from '../utils';
+import { normalizeQuery, QueryTypeDef, queryTypes } from '../queryTypes';
+import { MyDataSourceOptions, MyQuery, QueryType } from '../types';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
-const queryTypes = [...TIMESERIES_QUERY_TYPES, ...TABLE_QUERY_TYPES];
-const metricOptions = stockMetrics.map((metric) => ({ value: metric, label: metric }));
+// Object.keys loses the key union; the registry is declared over exactly QueryType.
+const typeOptions: Array<ComboboxOption<QueryType>> = (Object.keys(queryTypes) as QueryType[]).map((value) => {
+  const { label, premium }: QueryTypeDef = queryTypes[value];
+  return { value, label: premium ? `${label} (Premium)` : label };
+});
 
-const resolutions = [
-  { value: '1', label: '1' },
-  { value: '5', label: '5' },
-  { value: '15', label: '15' },
-  { value: '30', label: '30' },
-  { value: '60', label: '60' },
+const metricOptions: ComboboxOption[] = [
+  'price',
+  'valuation',
+  'growth',
+  'margin',
+  'management',
+  'financialStrength',
+  'perShare',
+].map((value) => ({ value }));
+
+const resolutionOptions: ComboboxOption[] = [
+  { value: '1' },
+  { value: '5' },
+  { value: '15' },
+  { value: '30' },
+  { value: '60' },
   { value: 'D', label: 'Day' },
   { value: 'W', label: 'Week' },
   { value: 'M', label: 'Month' },
 ];
 
-export const QueryEditor: FC<Props> = ({ onChange, onRunQuery, query }) => {
-  const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    const queryType = value.split('?')[0];
-    onChange({
-      ...query,
-      queryText: value,
-      format: getTargetType({ value: queryType }),
-    });
-  };
-
-  const onValueChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    onChange({ ...query, [name]: value });
-  };
-
-  const onTypeChange = (item: SelectableValue) => {
-    onChange({ ...query, type: item });
-    if (item.value === 'exchange') {
-      onRunQuery();
-    }
-  };
-
-  const onMetricChange = (item: SelectableValue) => {
-    onChange({ ...query, metric: item });
-  };
-
-  const onResolutionChange = (resolution: SelectableValue) => {
-    onChange({ ...query, resolution: resolution.value });
-  };
-
-  const onKeyDown = (event: React.KeyboardEvent) => {
+export const QueryEditor = ({ onChange, onRunQuery, query: saved }: Props) => {
+  const query = normalizeQuery(saved);
+  const update = (patch: Partial<MyQuery>) => onChange({ ...query, ...patch });
+  const runOnEnter = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {
       onRunQuery();
     }
   };
 
-  const dataTypes = queryTypes.map((type) => ({
-    label: `${capitalize(type).replace(/\d+/g, '')} ${PREMIUM_QUERIES.includes(type) ? '(Premium)' : ''}`, // Remove numbers from labels
-    value: type,
-  }));
-
-  const { queryText, symbol, type, resolution, metric } = { ...defaultQuery, ...query };
-
   return (
-    <form onSubmit={onRunQuery}>
+    <>
       <Field label="Data type">
-        <Select data-testid="Data type" onChange={onTypeChange} options={dataTypes} value={type} defaultValue={type} />
+        <Combobox
+          id="finnhub-type"
+          options={typeOptions}
+          value={query.type}
+          onChange={(option) => update({ type: option.value })}
+        />
       </Field>
-      {type.value !== 'exchange' && (
-        <Field label="Symbol">
-          <Input
-            value={symbol}
-            name={'symbol'}
-            onChange={onValueChange}
-            onKeyDown={onKeyDown}
-            placeholder="Stock symbol"
-          />
-        </Field>
-      )}
-
-      {type.value === 'candle' && (
+      <Field label="Symbol">
+        <Input
+          id="finnhub-symbol"
+          value={query.symbol}
+          placeholder="Stock symbol"
+          onChange={(event: ChangeEvent<HTMLInputElement>) => update({ symbol: event.target.value })}
+          onKeyDown={runOnEnter}
+        />
+      </Field>
+      {query.type === 'candle' && (
         <Field label="Resolution">
-          <Select onChange={onResolutionChange} options={resolutions} value={resolution} />
-        </Field>
-      )}
-
-      {type.value === 'metric' && (
-        <Field label="Metric">
-          <Select onChange={onMetricChange} options={metricOptions} value={metric} defaultValue={metric} />
-        </Field>
-      )}
-      {type.value !== 'trades' && (
-        <Field
-          label="Free Query Text"
-          horizontal={false}
-          description="Experimental. Will override any selected values above."
-        >
-          <Input
-            value={queryText || ''}
-            onChange={onQueryTextChange}
-            onKeyDown={onKeyDown}
-            placeholder="Custom query e.g. 'earnings?symbol=AAPL'"
+          <Combobox
+            id="finnhub-resolution"
+            options={resolutionOptions}
+            value={query.resolution}
+            onChange={(option) => update({ resolution: option.value })}
           />
         </Field>
       )}
-    </form>
+      {query.type === 'metric' && (
+        <Field label="Metric">
+          <Combobox
+            id="finnhub-metric"
+            options={metricOptions}
+            value={query.metric}
+            onChange={(option) => update({ metric: option.value })}
+          />
+        </Field>
+      )}
+      {query.type !== 'trades' && (
+        <Field label="Free Query Text" description="Experimental. Will override any selected values above.">
+          <Input
+            id="finnhub-query-text"
+            value={query.queryText ?? ''}
+            placeholder="Custom query e.g. 'stock/earnings?symbol=AAPL'"
+            onChange={(event: ChangeEvent<HTMLInputElement>) => update({ queryText: event.target.value })}
+            onKeyDown={runOnEnter}
+          />
+        </Field>
+      )}
+    </>
   );
 };
