@@ -1,6 +1,9 @@
 ## 0.8.0
 
-- Fix: require Grafana 10.1 or later; 0.7.0 failed to load on 10.0.x
+- Require Grafana 12.4 or later (0.7.0 also failed to load on 10.0.x, which lacks `createDataFrame`)
+- Replace deprecated `Select` with `Combobox` in the query editor
+- Build the trades frame with `createDataFrame` instead of the deprecated `CircularDataFrame`
+- Take `DataQuery` from `@grafana/schema`; the `@grafana/data` alias is deprecated
 - Fix: keep every trade in a websocket message instead of only the first
 - Fix: trades panels no longer report "Data outside time range" seconds after starting; packets are marked as streaming
 - Fix: label candle series (Opening price, High price, ...) instead of `o`, `h`, `l`, `c`, `v`

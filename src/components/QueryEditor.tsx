@@ -1,6 +1,6 @@
 import React, { ChangeEvent, KeyboardEvent } from 'react';
-import { Field, Input, Select } from '@grafana/ui';
-import { QueryEditorProps, SelectableValue } from '@grafana/data';
+import { Combobox, ComboboxOption, Field, Input } from '@grafana/ui';
+import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../DataSource';
 import { normalizeQuery, QueryTypeDef, queryTypes } from '../queryTypes';
 import { MyDataSourceOptions, MyQuery, QueryType } from '../types';
@@ -8,21 +8,27 @@ import { MyDataSourceOptions, MyQuery, QueryType } from '../types';
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 // Object.keys loses the key union; the registry is declared over exactly QueryType.
-const typeOptions = (Object.keys(queryTypes) as QueryType[]).map((value) => {
+const typeOptions: Array<ComboboxOption<QueryType>> = (Object.keys(queryTypes) as QueryType[]).map((value) => {
   const { label, premium }: QueryTypeDef = queryTypes[value];
   return { value, label: premium ? `${label} (Premium)` : label };
 });
 
-const metricOptions = ['price', 'valuation', 'growth', 'margin', 'management', 'financialStrength', 'perShare'].map(
-  (value) => ({ value, label: value })
-);
+const metricOptions: ComboboxOption[] = [
+  'price',
+  'valuation',
+  'growth',
+  'margin',
+  'management',
+  'financialStrength',
+  'perShare',
+].map((value) => ({ value }));
 
-const resolutionOptions = [
-  { value: '1', label: '1' },
-  { value: '5', label: '5' },
-  { value: '15', label: '15' },
-  { value: '30', label: '30' },
-  { value: '60', label: '60' },
+const resolutionOptions: ComboboxOption[] = [
+  { value: '1' },
+  { value: '5' },
+  { value: '15' },
+  { value: '30' },
+  { value: '60' },
   { value: 'D', label: 'Day' },
   { value: 'W', label: 'Week' },
   { value: 'M', label: 'Month' },
@@ -40,11 +46,11 @@ export const QueryEditor = ({ onChange, onRunQuery, query: saved }: Props) => {
   return (
     <>
       <Field label="Data type">
-        <Select
-          inputId="finnhub-type"
+        <Combobox
+          id="finnhub-type"
           options={typeOptions}
           value={query.type}
-          onChange={(item: SelectableValue<QueryType>) => update({ type: item.value })}
+          onChange={(option) => update({ type: option.value })}
         />
       </Field>
       <Field label="Symbol">
@@ -58,21 +64,21 @@ export const QueryEditor = ({ onChange, onRunQuery, query: saved }: Props) => {
       </Field>
       {query.type === 'candle' && (
         <Field label="Resolution">
-          <Select
-            inputId="finnhub-resolution"
+          <Combobox
+            id="finnhub-resolution"
             options={resolutionOptions}
             value={query.resolution}
-            onChange={(item) => update({ resolution: item.value })}
+            onChange={(option) => update({ resolution: option.value })}
           />
         </Field>
       )}
       {query.type === 'metric' && (
         <Field label="Metric">
-          <Select
-            inputId="finnhub-metric"
+          <Combobox
+            id="finnhub-metric"
             options={metricOptions}
             value={query.metric}
-            onChange={(item) => update({ metric: item.value })}
+            onChange={(option) => update({ metric: option.value })}
           />
         </Field>
       )}

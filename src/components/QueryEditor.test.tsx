@@ -33,7 +33,7 @@ describe('QueryEditor', () => {
     // Old dashboards hold the legacy shape at runtime; the prop type is the current model.
     render(<Harness initial={legacyQuery as MyQuery} onChange={onChange} />);
 
-    expect(screen.getByText('Profile')).toBeInTheDocument();
+    expect(screen.getByLabelText('Data type')).toHaveValue('Profile');
     expect(screen.getByLabelText('Symbol')).toHaveValue('aapl');
     expect(screen.getByLabelText(/Free Query Text/)).toHaveValue('');
 
@@ -56,13 +56,14 @@ describe('QueryEditor', () => {
     const candle: MyQuery = { refId: 'A', type: 'candle', symbol: 'AAPL', resolution: 'D', metric: 'price' };
     render(<Harness initial={candle} onChange={onChange} />);
 
-    expect(screen.getByLabelText('Resolution')).toBeInTheDocument();
-    expect(screen.getByText('Day')).toBeInTheDocument();
+    expect(screen.getByLabelText('Data type')).toHaveValue('Candle (Premium)');
+    expect(screen.getByLabelText('Resolution')).toHaveValue('Day');
 
     await user.click(screen.getByLabelText('Data type'));
-    await user.click(screen.getByText('Quote'));
+    await user.click(screen.getByRole('option', { name: 'Quote' }));
 
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'quote' }));
+    expect(screen.getByLabelText('Data type')).toHaveValue('Quote');
     expect(screen.queryByLabelText('Resolution')).toBeNull();
   });
 });

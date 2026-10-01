@@ -1,5 +1,5 @@
 import { DataQueryResponse, LoadingState } from '@grafana/data';
-import { streamTrades } from './streamTrades';
+import { streamTrades, TRADE_CAPACITY } from './streamTrades';
 
 class FakeWebSocket {
   static readonly CONNECTING = 0;
@@ -70,12 +70,27 @@ describe('streamTrades', () => {
     expect(packets[0].key).toBe('A');
     expect(packets[0].state).toBe(LoadingState.Streaming);
     expect(packets[0].data[0].refId).toBe('A');
-    expect(Array.from(packets[0].data[0].fields[1].values)).toEqual([150.1, 150.2]);
+    expect(packets[0].data[0].fields[1].values).toEqual([150.1, 150.2]);
 
     subscription.unsubscribe();
 
     expect(socket.sent[1]).toBe(JSON.stringify({ type: 'unsubscribe', symbol: 'AAPL' }));
     expect(socket.close).toHaveBeenCalled();
+  });
+
+  it('keeps only the most recent TRADE_CAPACITY trades', () => {
+    const packets: DataQueryResponse[] = [];
+    streamTrades('ws://grafana/proxy/ws', 'AAPL', 'A').subscribe((packet) => packets.push(packet));
+    const socket = FakeWebSocket.instances[0];
+
+    socket.open();
+    socket.receive({ type: 'trade', data: Array.from({ length: TRADE_CAPACITY }, (_, i) => ({ p: i, t: i })) });
+    socket.receive({ type: 'trade', data: [{ p: 9999, t: 9999 }] });
+
+    const { fields } = packets[1].data[0];
+    expect(fields[0].values).toHaveLength(TRADE_CAPACITY);
+    expect(fields[0].values[0]).toBe(1);
+    expect(fields[1].values[TRADE_CAPACITY - 1]).toBe(9999);
   });
 
   it('closes without sending when unsubscribed before the socket opens', () => {

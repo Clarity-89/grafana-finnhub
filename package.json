@@ -69,9 +69,10 @@
     "tar": "^7.5.13"
   },
   "dependencies": {
-    "@grafana/data": "^12.4.2",
-    "@grafana/runtime": "^12.4.2",
-    "@grafana/ui": "^12.4.2",
+    "@grafana/data": "^12.4.12",
+    "@grafana/runtime": "^12.4.12",
+    "@grafana/schema": "^12.4.12",
+    "@grafana/ui": "^12.4.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rxjs": "^7.5.1"
