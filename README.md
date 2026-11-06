@@ -29,7 +29,7 @@ Before starting, it's necessary to get an API token from [Finnhub](https://finnh
 - [Stock candles](https://finnhub.io/docs/api#stock-candles)
 - [Social Sentiment](https://finnhub.io/docs/api/social-sentiment)
 
-Date-ranged endpoints use the dashboard time range. Finnhub's dates are read as UTC.
+Date-ranged endpoints use the dashboard time range.
 
 ### Annotations
 
@@ -37,7 +37,7 @@ Pick the data source as an annotation source and choose a type. Company news mar
 
 ### Variables
 
-Query variables run any data type and take the first text column as options. `Peers` with symbol `$symbol` lists the peers of the selected company; `Symbol lookup` turns a search term into tickers.
+Query variables run any data type and take the first string field as options. `Peers` with symbol `$symbol` lists the peers of the selected company; `Symbol lookup` turns a search term into tickers.
 
 ### Sample dashboard
 
