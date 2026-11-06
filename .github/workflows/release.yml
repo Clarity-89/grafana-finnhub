@@ -26,11 +26,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Build and test frontend
-        run: yarn run build
-
-      - name: Build documentation
-        run: yarn run docs:build
+      - name: Build plugin and documentation
+        run: yarn run build:release
 
       - name: Warn missing Grafana API key
         run: |

@@ -4,6 +4,7 @@
   "description": "Datasource plugin for Finnhub",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
+    "build:release": "yarn run build && yarn run docs:build",
     "cleaninstall": "rm -rf node_modules && rm -rf yarn.lock && yarn install",
     "dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
     "lint": "eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",

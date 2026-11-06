@@ -13,7 +13,7 @@ if [ -n "$(git status --porcelain)" ]; then
   echo "warning: uncommitted changes are not part of the validated source" >&2
 fi
 
-yarn build
+yarn run build:release
 cp -r dist "$WORK/$ID"
 (cd "$WORK" && zip -qr "$ID.zip" "$ID")
 mkdir "$WORK/source" && git archive HEAD | tar -x -C "$WORK/source"
