@@ -10,12 +10,6 @@ sidebar_position: 4
 
 Use template variables to create dynamic, reusable dashboards that let you change query parameters without editing individual panels. For general information about template variables, refer to [Templates and variables](https://grafana.com/docs/grafana/latest/dashboards/variables/).
 
-<!-- section-brief
-Fill this in: Delete only this brief.
-
-If the plugin supports no variable types and interpolates no variables in its queries, delete this page and its link in `index.md`.
--->
-
 ## Before you begin
 
 - [Configure the Finnhub data source](./configure.md).
@@ -26,32 +20,28 @@ If the plugin supports no variable types and interpolates no variables in its qu
 
 The Finnhub data source supports the following variable types:
 
-<!-- section-brief
-Fill this in: A table with a Yes or No for each variable type, in this order:
-
 | Variable type  | Supported |
 | -------------- | --------- |
-| Query          |           |
+| Query          | Yes       |
 | Custom         | Yes       |
 | Data source    | Yes       |
-| Ad hoc filters |           |
-
-Custom and Data source variables are handled by Grafana itself and work with every data source, so keep them as Yes. Query is Yes if the data source class sets `variables` or implements `metricFindQuery`. Ad hoc filters is Yes if it implements both `getTagKeys` and `getTagValues`.
--->
+| Ad hoc filters | No        |
 
 ## Use variables in queries
 
-<!-- section-brief
-Fill this in: Explain how to use a variable in the Finnhub query editor, field by field, since fields accept variables in different ways. For each field that accepts one, say how the reader adds it: picked from a drop-down that lists dashboard variables, perhaps with a prefix such as `var:`, or typed into an input or code editor as `$variable` or `${variable}`. Note fields that don't accept variables, and any difference between editor modes, such as a builder and a code editor. Give an example, and say how a single value is substituted, such as whether a string needs quotes. Say which Grafana global variables, such as `$__interval` or `$__from`, work and in which fields.
+Variables work in the **Symbol**, **Search**, **Exchange** and **Category** fields, written as `$variable` or `${variable}`.
 
-Find which fields list variables in the query editor component, usually from `getTemplateSrv().getVariables()`, and which fields are interpolated in `applyTemplateVariables` or `interpolateVariablesInQueries`, or in the backend.
+- The plugin replaces each of those fields with one string, so use single-value variables.
+- The plugin uppercases **Symbol** after it replaces the variable.
+- **Resolution**, **Metric** and **Free Query Text** don't interpolate variables.
 
-If the plugin doesn't interpolate variables in its queries, remove this section entirely.
--->
+For example, add a text box variable named `symbol` with the value `AAPL`, then set **Symbol** in a panel to `$symbol`. The panel queries the symbol the variable holds.
+
+Annotation queries interpolate the same four fields as panel queries do.
 
 ## Query variables
 
-A query variable fills its drop-down by running a query against Finnhub, so its options stay current with your data. Use one to let viewers pick a value, such as a host, a table or a project, and update every panel that uses it.
+A query variable fills its drop-down by running a query against Finnhub, so its options stay current with your data. Use one to let viewers pick a value, such as a ticker, and update every panel that uses it.
 
 To create a query variable:
 
@@ -59,11 +49,33 @@ To create a query variable:
 1. Click **Add variable**.
 1. Select **Query** as the variable type.
 1. Select the **Finnhub** data source.
+1. Choose a **Data type**.
+1. Fill the fields the type shows, such as **Symbol** or **Search**.
 
-<!-- section-brief
-Fill this in: Continue the list above with the steps for the variable query editor, using its field labels in bold. Say whether it's the same editor as the query editor or a separate one, from the variable support in source.
+The variable editor is the same query editor as a panel uses, with the same fields and the same data types.
 
-If the variable query editor has several query types, such as projects or environments, add an H3 for each that says what it lists, its fields and which part of each result becomes the display text and which the value. Otherwise, explain how the query result becomes the options: which column becomes the display text and which the value, and whether columns are matched by name, such as `text` and `value`, or by position, with one example for a single column and one for separate text and value. Take this from `metricFindQuery` or the variable support class in source.
+The first string field of the query result becomes both the option value and the option text. Add a **Symbol lookup** or **Peers** query to list tickers, because both types return a string field.
 
-If the plugin doesn't support query variables, remove this whole section, including its heading and the text above.
--->
+For example, to list the peers of a company:
+
+1. Add a text box variable named `search` with a company name as its value.
+1. Add a query variable named `company`, set **Data type** to **Symbol lookup** and set **Search** to `$search`. The options are the matching tickers.
+1. Add a query variable named `peer`, set **Data type** to **Peers** and set **Symbol** to `$company`. The options are the peer tickers.
+1. Use `$peer` in the **Symbol** field of a panel query.
+
+Grafana stores the `peer` variable query as this target:
+
+```json
+{
+  "refId": "PeerVar",
+  "type": "peers",
+  "symbol": "$company",
+  "search": "",
+  "resolution": "1",
+  "metric": "price",
+  "exchange": "US",
+  "category": "general"
+}
+```
+
+**Trades** opens a stream and returns no response body to shape, so you can't use it as a variable source.
