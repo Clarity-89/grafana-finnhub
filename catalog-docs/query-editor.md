@@ -28,7 +28,7 @@ This document explains how to use the Finnhub query editor to build queries and 
 | **Metric**         | The metric group for **Metric**: `price`, `valuation`, `growth`, `margin`, `management`, `financialStrength` or `perShare`. Default `price`.                                                             |
 | **Exchange**       | The Finnhub exchange code for **Market holidays** and **Market status**, for example `US`. Default `US`.                                                                                                 |
 | **Category**       | The market news category: `general`, `forex`, `crypto` or `merger`. Default `general`.                                                                                                                  |
-| **Free Query Text**| Experimental. A path and query string under `/api/v1`, for example `stock/earnings?symbol=AAPL`. It overrides every field above. It isn't shown for **Trades**.                                          |
+| **Free Query Text**| Experimental. A path and query string under `/api/v1`, for example `quote?symbol=AAPL`. It overrides every field above. It isn't shown for **Trades**. The response must be a flat object, because each top-level key becomes one field. |
 
 Selections apply and run immediately, while text inputs wait for Enter or the **Run query** button. Changing **Data type** runs the query when the inputs of the new type already have values; otherwise the editor waits for you to fill them.
 
@@ -168,10 +168,12 @@ The plugin uppercases the interpolated symbol, so the value of `$symbol` can be 
 1. Enter `BINANCE:BTCUSDT` in **Symbol**.
 1. Click **Run query** and leave the panel open to keep the stream running.
 
-### Free Query Text for earnings surprises
+### Free Query Text for a quote
 
-1. Set **Data type** to **Earnings**.
-1. Enter `stock/earnings?symbol=AAPL` in **Free Query Text**.
+1. Set **Data type** to **Quote**.
+1. Enter `quote?symbol=AAPL` in **Free Query Text**.
 1. Press Enter or click **Run query**.
 
-The plugin sends the text as the path under `/api/v1` and reads the response with its generic shape, so the target stores `"type": "earnings"` together with `"queryText": "stock/earnings?symbol=AAPL"`.
+The plugin sends the text as the path under `/api/v1` and reads the response with its generic shape. The panel shows Finnhub's raw keys, such as `c` for the current price and `t` for the timestamp, instead of the `current price` field that the **Quote** data type returns.
+
+Free Query Text reads a flat response object, because each top-level key becomes one field. An endpoint that returns an array, such as `stock/earnings?symbol=AAPL`, produces object-valued fields named `0`, `1` and so on, with no time or numeric series. Use the matching data type for those endpoints.
