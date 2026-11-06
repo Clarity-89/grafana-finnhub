@@ -122,6 +122,8 @@ Each data type returns a fixed data frame, and the editor has no **Format** opti
 | Trades                                                                                     | A streaming time series with the `ts` and `value` fields, capped at 1000 points.                                                                                                      |
 | Free Query Text                                                                            | A best-effort table or series, with one field per top-level response key. The `t`, `time` and `period` keys are read as Unix seconds.                                                  |
 
+Finnhub sends date-only values and timestamps without a time zone. The plugin reads them as UTC, so the points land in the same place in every browser.
+
 ## Query examples
 
 ### Quote for a ticker
