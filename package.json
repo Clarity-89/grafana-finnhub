@@ -13,7 +13,10 @@
     "test": "jest --watch --onlyChanged",
     "test:ci": "jest --passWithNoTests --maxWorkers 4",
     "typecheck": "tsc --noEmit",
-    "validate": "sh scripts/validate.sh"
+    "validate": "sh scripts/validate.sh",
+    "docs:build": "plugin-docs-cli build",
+    "docs:serve": "plugin-docs-cli serve --port 3001 --reload",
+    "docs:validate": "plugin-docs-cli validate"
   },
   "author": "Alex Khomenko",
   "license": "Apache-2.0",
@@ -23,6 +26,7 @@
   },
   "devDependencies": {
     "@grafana/eslint-config": "^8.2.0",
+    "@grafana/plugin-docs-cli": "^0.14.0",
     "@grafana/tsconfig": "^2.0.1",
     "@openfeature/web-sdk": "^1.7.3",
     "@stylistic/eslint-plugin-ts": "^2.9.0",
