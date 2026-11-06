@@ -2,6 +2,7 @@
 
 - Add the plugin documentation for the Documentation tab: configure, query editor, template variables, annotations and troubleshooting pages
 - Build the docs into the release and catalog-validation archives
+- Fix: point the License link in the plugin details at `main` instead of `master`
 - Update dependencies, including vulnerable transitive packages
 
 ## 1.0.0
