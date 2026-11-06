@@ -1,3 +1,9 @@
+## 1.1.0
+
+- Add the plugin documentation for the Documentation tab: configure, query editor, template variables, annotations and troubleshooting pages
+- Build the docs into the release and catalog-validation archives
+- Update dependencies, including vulnerable transitive packages
+
 ## 1.0.0
 
 - Require Grafana 12.4 or later
